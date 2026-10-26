@@ -16,17 +16,17 @@ class ProspectInput(BaseModel):
     title: Optional[str] = Field(default="", description="Prospect job title")
     linkedin_url: Optional[str] = Field(default="", description="LinkedIn profile URL")
     
-    # Required Scraped Content Blocks
+    # Scraped Content Blocks (default to empty string if missing)
     scraped_profile_bio: str = Field(
-        ..., 
+        default="", 
         description="Scraped summary / headline / about bio from LinkedIn"
     )
     recent_posts_and_comments: str = Field(
-        ..., 
+        default="", 
         description="Scraped text from recent LinkedIn posts, articles, and comment activity"
     )
     recent_company_job_listings: str = Field(
-        ..., 
+        default="", 
         description="Scraped active job postings and descriptions from the prospect's company"
     )
 

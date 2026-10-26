@@ -188,30 +188,31 @@ class WebDiscoveryEngine:
     """
 
     def __init__(self):
-        self.client = httpx.AsyncClient(
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-            },
-            timeout=10.0,
-            follow_redirects=True
-        )
+        pass
 
     async def extract_emails_from_webpage(self, url: str) -> List[str]:
         """Fetches webpage and extracts valid contact email addresses."""
         try:
-            resp = await self.client.get(url)
-            if resp.status_code != 200:
-                return []
-            text = resp.text
-            found = EMAIL_REGEX.findall(text)
-            clean_emails = []
-            for email in set(found):
-                email = email.lower()
-                # Exclude image artifacts or code snippets
-                if not any(email.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".svg", ".gif", ".webp", ".js", ".css"]):
-                    if "sentry" not in email and "w3.org" not in email:
-                        clean_emails.append(email)
-            return clean_emails
+            async with httpx.AsyncClient(
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+                },
+                timeout=10.0,
+                follow_redirects=True
+            ) as client:
+                resp = await client.get(url)
+                if resp.status_code != 200:
+                    return []
+                text = resp.text
+                found = EMAIL_REGEX.findall(text)
+                clean_emails = []
+                for email in set(found):
+                    email = email.lower()
+                    # Exclude image artifacts or code snippets
+                    if not any(email.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".svg", ".gif", ".webp", ".js", ".css"]):
+                        if "sentry" not in email and "w3.org" not in email:
+                            clean_emails.append(email)
+                return clean_emails
         except Exception as e:
             logger.warning(f"Failed to scrape webpage {url}: {e}")
             return []
@@ -225,41 +226,52 @@ class WebDiscoveryEngine:
         niche_clean = req.niche.strip().lower()
         firm_type_clean = (req.firm_type or "").strip().lower()
 
-        # Step 1: Match against high-confidence institutional registry
-        matched_leads: List[DiscoveredLead] = []
+        # Step 1: Score and categorize matches by region and niche
+        perfect_matches: List[DiscoveredLead] = []
+        region_matches: List[DiscoveredLead] = []
+        niche_matches: List[DiscoveredLead] = []
+
         for firm in REGIONAL_QUANT_REGISTRY:
             firm_region = firm["region"].lower()
             firm_summary = firm["summary"].lower()
+            firm_name = firm["firm_name"].lower()
             
-            # Check regional match
             region_match = (
                 region_clean in firm_region or 
                 firm_region in region_clean or
-                any(part.strip() in firm_region for part in region_clean.split(","))
+                any(part.strip() in firm_region for part in region_clean.split(",") if len(part.strip()) > 2)
             )
             
-            # Check niche or firm type match
             niche_match = (
                 niche_clean in firm_summary or
-                any(w in firm_summary for w in niche_clean.split()) or
-                (firm_type_clean and any(w in firm_summary for w in firm_type_clean.split()))
+                niche_clean in firm_name or
+                any(w in firm_summary for w in niche_clean.split() if len(w) > 3) or
+                (firm_type_clean and any(w in firm_summary for w in firm_type_clean.split() if len(w) > 3))
             )
 
-            if region_match or niche_match:
-                matched_leads.append(DiscoveredLead(**firm))
+            lead = DiscoveredLead(**firm)
+            if region_match and niche_match:
+                perfect_matches.append(lead)
+            elif region_match:
+                region_matches.append(lead)
+            elif niche_match:
+                niche_matches.append(lead)
 
-        # If strict regional filter yielded fewer results, include top quant firms with region adapted
+        # Assemble leads prioritizing exact region matches
+        matched_leads: List[DiscoveredLead] = perfect_matches + region_matches
+
+        # If user specified a region not in registry, adapt niche matches to requested region
         if len(matched_leads) < req.num_results:
+            seen_names = {m.firm_name for m in matched_leads}
             for firm in REGIONAL_QUANT_REGISTRY:
-                if firm["firm_name"] not in [m.firm_name for m in matched_leads]:
-                    # Create an adapted regional lead
+                if firm["firm_name"] not in seen_names:
                     firm_copy = dict(firm)
-                    # If user provided a specific custom city/region
                     if req.region and req.region != "Global":
                         firm_copy["region"] = req.region
                         domain = firm_copy["website"].replace("https://www.", "").replace("http://www.", "").split("/")[0]
                         firm_copy["email"] = f"trading@{domain}"
                     matched_leads.append(DiscoveredLead(**firm_copy))
+                    seen_names.add(firm["firm_name"])
                 if len(matched_leads) >= req.num_results:
                     break
 

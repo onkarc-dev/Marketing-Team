@@ -100,13 +100,15 @@ class B2BIntelligenceAnalyzer:
             return 0
         return len(text.strip().split())
 
-    def _truncate_to_max_words(self, message: str, max_words: int = 45) -> str:
+    def _truncate_to_max_words(self, message: Optional[str], max_words: int = 45) -> str:
         """Enforces strictly <= max_words constraint while preserving punctuation."""
+        if not message:
+            return ""
         words = message.strip().split()
         if len(words) <= max_words:
             return message.strip()
 
-        # Truncate cleanly at sentence boundary if possible
+        # Truncate cleanly at word boundary
         truncated_words = words[:max_words]
         truncated_text = " ".join(truncated_words)
         
@@ -116,9 +118,13 @@ class B2BIntelligenceAnalyzer:
             truncated_text = re.sub(r"[,;:\-]+$", "", truncated_text) + "."
         return truncated_text
 
-    def _ensure_single_sentence(self, text: str) -> str:
+    def _ensure_single_sentence(self, text: Optional[str]) -> str:
         """Ensure reasoning is strictly 1 single sentence."""
+        if not text:
+            return "No behavioral triggers or active signals identified."
         cleaned = text.strip()
+        if not cleaned:
+            return "No behavioral triggers or active signals identified."
         # Find first sentence ending in period, question mark, or exclamation
         sentences = re.split(r"(?<=[.!?])\s+", cleaned)
         if sentences:
@@ -133,25 +139,31 @@ class B2BIntelligenceAnalyzer:
         Extract behavioral signals from prospect data.
         Returns: (triggers_list, suggested_score, detected_hook, reasoning_sentence)
         """
+        bio_text = prospect.scraped_profile_bio or ""
+        posts_text = prospect.recent_posts_and_comments or ""
+        jobs_text = prospect.recent_company_job_listings or ""
+        title_text = prospect.title or ""
+
         combined_text = (
-            f"Bio: {prospect.scraped_profile_bio}\n"
-            f"Posts: {prospect.recent_posts_and_comments}\n"
-            f"Jobs: {prospect.recent_company_job_listings}"
+            f"Bio: {bio_text}\n"
+            f"Posts: {posts_text}\n"
+            f"Jobs: {jobs_text}"
         ).lower()
 
-        posts_lower = prospect.recent_posts_and_comments.lower()
-        jobs_lower = prospect.recent_company_job_listings.lower()
-        bio_lower = prospect.scraped_profile_bio.lower()
+        posts_lower = posts_text.lower()
+        jobs_lower = jobs_text.lower()
+        bio_lower = bio_text.lower()
+        title_lower = title_text.lower()
 
         triggers: List[TriggerSignal] = []
         company_name = prospect.company or "your team"
 
         # Check for empty / template placeholder data
         if (
-            "{scraped_profile_bio}" in prospect.scraped_profile_bio or
-            "{recent_posts_and_comments}" in prospect.recent_posts_and_comments or
-            "{recent_company_job_listings}" in prospect.recent_company_job_listings or
-            (not prospect.scraped_profile_bio.strip() and not prospect.recent_posts_and_comments.strip())
+            "{scraped_profile_bio}" in bio_text or
+            "{recent_posts_and_comments}" in posts_text or
+            "{recent_company_job_listings}" in jobs_text or
+            (not bio_text.strip() and not posts_text.strip())
         ):
             return [], 1, None, "No prospect information or behavioral triggers were provided in the input fields."
 
@@ -195,7 +207,7 @@ class B2BIntelligenceAnalyzer:
             return triggers, 8, hook, reasoning
 
         # 4. Check for Right Industry / Title but No Active Signals (Score 4-7)
-        is_relevant_title = any(t in bio_lower or t in prospect.title.lower() for t in RELEVANT_TITLES)
+        is_relevant_title = any(t in bio_lower or t in title_lower for t in RELEVANT_TITLES)
         if is_relevant_title:
             triggers.append(TriggerSignal(
                 category="title_match",

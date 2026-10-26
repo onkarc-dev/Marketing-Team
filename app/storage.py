@@ -1,9 +1,7 @@
-"""
-SQLite Storage Layer for Quanteinstein B2B Outbound Leads.
-"""
-
 import sqlite3
 import json
+import os
+from contextlib import contextmanager
 from typing import List, Optional, Dict, Any
 from app.config import settings
 from app.models import EnrichedProspectRecord, SystemStats, TriggerSignal
@@ -16,10 +14,17 @@ class ProspectStorage:
         self.db_path = db_path or settings.DB_PATH
         self._init_db()
 
-    def _get_connection(self) -> sqlite3.Connection:
+    @contextmanager
+    def _get_connection(self):
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            yield conn
+        finally:
+            conn.close()
 
     def _init_db(self):
         with self._get_connection() as conn:

@@ -9,9 +9,17 @@ import csv
 import argparse
 from colorama import init, Fore, Style
 from app.config import settings
-from app.models import ProspectInput
+from app.models import ProspectInput, SearchQueryRequest
 from app.analyzer import B2BIntelligenceAnalyzer
 from app.storage import ProspectStorage
+from app.discovery import WebDiscoveryEngine
+from app.email_generator import EmailOutreachGenerator
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 init(autoreset=True)
 
@@ -122,9 +130,56 @@ async def run_batch_file(filepath: str, output_file: str = None):
         print(f"{Fore.CYAN}Saved strict results to: {output_file}{Style.RESET_ALL}")
 
 
+async def run_regional_prospecting(niche: str, region: str, firm_type: str = "emerging hedge fund", count: int = 5, sender: str = "Technical Founder", out_file: str = None):
+    print_banner()
+    print(f"{Fore.CYAN}[*] Initiating Agent Web Search & Lead Intelligence:{Style.RESET_ALL}")
+    print(f"  * Niche:  {Fore.WHITE}{niche}{Style.RESET_ALL}")
+    print(f"  * Region: {Fore.GREEN}{region}{Style.RESET_ALL}")
+    print(f"  * Target: {Fore.YELLOW}{firm_type}{Style.RESET_ALL}")
+    print(f"  * Target Count: {count}\n")
+
+    discovery = WebDiscoveryEngine()
+    generator = EmailOutreachGenerator()
+
+    req = SearchQueryRequest(niche=niche, region=region, firm_type=firm_type, num_results=count, sender_name=sender)
+    leads = await discovery.search_and_discover(req)
+
+    print(f"{Fore.GREEN}[+] Discovered {len(leads)} matching firms with validated contact channels.{Style.RESET_ALL}\n")
+
+    generated_emails = []
+    for idx, lead in enumerate(leads, 1):
+        print(f"{Fore.CYAN}[{idx}/{len(leads)}] Analyzing {lead.firm_name} ({lead.region})...{Style.RESET_ALL}")
+        print(f"  Website: {lead.website} | Email: {Fore.YELLOW}{lead.email}{Style.RESET_ALL}")
+        print(f"  Focus:   {', '.join(lead.strategies_detected)}")
+        
+        email = await generator.generate_email(lead, sender_name=sender)
+        generated_emails.append(email)
+
+        print(f"\n{Fore.GREEN}---------------- DRAFTED PROPER COLD EMAIL ({email.word_count} words) ----------------{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}To:{Style.RESET_ALL}      {email.recipient_email} ({email.recipient_name})")
+        print(f"{Fore.CYAN}Subject:{Style.RESET_ALL} {Fore.WHITE}{email.subject}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Body:{Style.RESET_ALL}\n{email.body}")
+        print(f"{Fore.GREEN}----------------------------------------------------------------------{Style.RESET_ALL}\n")
+
+    if out_file:
+        out_dicts = [e.model_dump() for e in generated_emails]
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(out_dicts, f, indent=2)
+        print(f"{Fore.CYAN}Saved all drafted emails to: {out_file}{Style.RESET_ALL}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Quanteinstein B2B Outbound Intelligence CLI")
     subparsers = parser.add_subparsers(dest="command")
+
+    # Command: prospect (Web Search + Email Generation)
+    p_prospect = subparsers.add_parser("prospect", help="Search web by region & niche, scrape emails, and write cold outreach")
+    p_prospect.add_argument("--region", default="London, UK", help="Target region/city/area")
+    p_prospect.add_argument("--niche", default="quantitative hedge fund", help="Target trading niche")
+    p_prospect.add_argument("--firm-type", default="emerging hedge fund", help="Firm stage or type")
+    p_prospect.add_argument("--count", type=int, default=3, help="Number of firms to research")
+    p_prospect.add_argument("--sender", default="Technical Founder", help="Sender name for email signature")
+    p_prospect.add_argument("--out", default=None, help="Output JSON path to save emails")
 
     # Command: analyze
     p_analyze = subparsers.add_parser("analyze", help="Analyze a single prospect")
@@ -185,6 +240,15 @@ def main():
         print("\nPaste Recent Company Job Listings:")
         jobs = input("> ").strip()
         asyncio.run(run_single_analysis(bio, posts, jobs, name, company, title))
+    elif args.command == "prospect":
+        asyncio.run(run_regional_prospecting(
+            niche=args.niche,
+            region=args.region,
+            firm_type=args.firm_type,
+            count=args.count,
+            sender=args.sender,
+            out_file=args.out
+        ))
     else:
         parser.print_help()
 

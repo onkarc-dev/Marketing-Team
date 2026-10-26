@@ -54,12 +54,14 @@
 ```
 Marketing-Team/
 ├── app/
-│   ├── analyzer.py       # Core B2B Intelligence Analyst (Trigger detection & generation)
-│   ├── api.py            # FastAPI REST API endpoints & CSV upload handler
-│   ├── cli.py            # Command-line interface (single, batch, stats, interactive)
-│   ├── config.py         # Application settings, context, and thresholds
+│   ├── analyzer.py       # Core B2B Intelligence Analyst (Trigger detection & LinkedIn message generation)
+│   ├── discovery.py      # Regional Web Search, Scraper & Email Extraction Engine
+│   ├── email_generator.py# Hyper-personalized Cold Email Outreach Generator
+│   ├── api.py            # FastAPI REST API endpoints, discovery & CSV upload handler
+│   ├── cli.py            # Command-line interface (single, batch, stats, prospect, interactive)
+│   ├── config.py         # Application settings, Quanteinstein context, and thresholds
 │   ├── llm_client.py     # Gemini & OpenAI client wrappers with heuristic fallback
-│   ├── models.py         # Pydantic schemas (ProspectInput, AnalysisResult, EnrichedRecord)
+│   ├── models.py         # Pydantic schemas (ProspectInput, SearchQuery, GeneratedEmail)
 │   ├── prompts.py        # System prompt and prompt formatting pipeline
 │   ├── storage.py        # SQLite persistent storage and analytics tracking
 │   └── static/           # Interactive Web UI (dark-mode dashboard)
@@ -70,8 +72,9 @@ Marketing-Team/
 │   ├── sample_prospects.json  # 8 realistic scraped LinkedIn leads across all score tiers
 │   └── sample_prospects.csv   # CSV version for batch upload testing
 ├── tests/
-│   ├── test_analyzer.py  # Unit tests for scoring rules & constraints
-│   └── test_api.py       # Integration tests for FastAPI endpoints
+│   ├── test_analyzer.py        # Unit tests for scoring rules & constraints
+│   ├── test_api.py             # Integration tests for FastAPI endpoints
+│   └── test_email_generator.py # Unit tests for web search & cold email generation
 ├── main.py               # Unified entry point for Server and CLI
 ├── Dockerfile            # Container deployment image
 ├── docker-compose.yml    # Docker Compose configuration
@@ -134,6 +137,16 @@ python main.py analyze \
 }
 ```
 
+### Search Web & Generate Tailored Cold Emails by Region
+```bash
+python main.py prospect \
+  --region "London, UK" \
+  --niche "statistical arbitrage" \
+  --firm-type "emerging hedge fund" \
+  --count 3 \
+  --sender "Technical Founder"
+```
+
 ### Batch Analyze Scraped Prospects (JSON or CSV)
 ```bash
 python main.py batch --file data/sample_prospects.json --out exports/results.json
@@ -147,6 +160,40 @@ python main.py stats
 ---
 
 ## 📡 REST API Reference
+
+### 1. Web Prospecting & Tailored Cold Email Campaign
+* **Endpoint:** `POST /api/discovery/run-campaign`
+* **Request Body:**
+```json
+{
+  "niche": "quantitative hedge fund",
+  "region": "London, UK",
+  "firm_type": "emerging hedge fund (first 6 months)",
+  "num_results": 3,
+  "sender_name": "Technical Founder"
+}
+```
+* **Response (200 OK):**
+```json
+{
+  "total_discovered": 3,
+  "leads": [...],
+  "emails": [
+    {
+      "recipient_email": "research@aspectcapital.com",
+      "recipient_name": "Systematic Research Team",
+      "firm_name": "Aspect Capital",
+      "subject": "sandbox for Aspect Capital's trend following",
+      "body": "Saw your work at Aspect Capital in London, UK deploying Trend Following, Statistical Arbitrage. We built Quanteinstein—a risk-guarded strategy incubation and paper-trading sandbox...",
+      "word_count": 126
+    }
+  ]
+}
+```
+
+### 2. Export Generated Cold Emails
+* **Endpoint:** `GET /api/discovery/export-emails`
+* Downloads a CSV of all drafted cold emails ready for Lemlist, Smartlead, Instantly, or your CRM.
 
 ### 1. Analyze Prospect (Strict 3-Field JSON)
 * **Endpoint:** `POST /api/analyze/strict`

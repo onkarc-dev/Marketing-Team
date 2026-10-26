@@ -14,10 +14,13 @@ from fastapi.responses import FileResponse
 from app.config import settings
 from app.models import (
     ProspectInput, AnalysisResult, EnrichedProspectRecord,
-    BatchAnalysisRequest, BatchAnalysisResponse, SystemStats
+    BatchAnalysisRequest, BatchAnalysisResponse, SystemStats,
+    SearchQueryRequest, DiscoveredLead, GeneratedEmail, CampaignRunResponse
 )
 from app.analyzer import B2BIntelligenceAnalyzer
 from app.storage import ProspectStorage
+from app.discovery import WebDiscoveryEngine
+from app.email_generator import EmailOutreachGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +41,11 @@ app.add_middleware(
 
 analyzer = B2BIntelligenceAnalyzer()
 storage = ProspectStorage()
+discovery_engine = WebDiscoveryEngine()
+email_generator = EmailOutreachGenerator()
+
+# In-memory store for generated cold emails during session
+active_campaign_emails: List[GeneratedEmail] = []
 
 
 @app.get("/api/health")
@@ -195,6 +203,73 @@ async def export_prospects_csv(min_score: int = Query(8, ge=1, le=10)):
         content=output.getvalue(),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=quanteinstein_outreach_score_{min_score}+.csv"}
+    )
+
+
+# =====================================================================
+# Regional Web Search, Firm Analysis & Cold Email Endpoints
+# =====================================================================
+
+@app.post("/api/discovery/search", response_model=List[DiscoveredLead])
+async def search_firms(query: SearchQueryRequest):
+    """Search Google/web for firms in the specified region and niche, extracting contact emails."""
+    leads = await discovery_engine.search_and_discover(query)
+    return leads
+
+
+@app.post("/api/discovery/generate-email", response_model=GeneratedEmail)
+async def generate_firm_email(lead: DiscoveredLead, sender_name: str = Query("Technical Founder")):
+    """Analyze a single firm's work and generate a tailored cold email for Quanteinstein."""
+    email = await email_generator.generate_email(lead, sender_name=sender_name)
+    active_campaign_emails.append(email)
+    return email
+
+
+@app.post("/api/discovery/run-campaign", response_model=CampaignRunResponse)
+async def run_full_discovery_campaign(query: SearchQueryRequest):
+    """
+    End-to-End Pipeline:
+    1. Searches the web for firms in the specified region and niche.
+    2. Scrapes/identifies firm websites, strategies, and contact emails.
+    3. Deeply analyzes their work against Quanteinstein's modular sandbox.
+    4. Drafts a tailored, hyper-personalized B2B cold email for each firm.
+    """
+    leads = await discovery_engine.search_and_discover(query)
+    emails: List[GeneratedEmail] = []
+    
+    sender = query.sender_name or "Technical Founder"
+    for lead in leads:
+        em = await email_generator.generate_email(lead, sender_name=sender)
+        emails.append(em)
+        active_campaign_emails.append(em)
+
+    return CampaignRunResponse(
+        query=query,
+        total_discovered=len(leads),
+        leads=leads,
+        emails=emails
+    )
+
+
+@app.get("/api/discovery/export-emails")
+async def export_campaign_emails():
+    """Export all generated cold emails to CSV for email sequencing tools."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Lead ID", "Firm Name", "Region", "Recipient Name", "Recipient Email",
+        "Website", "Subject Line", "Email Body", "Value Props", "Word Count", "Created At"
+    ])
+    for em in active_campaign_emails:
+        writer.writerow([
+            em.lead_id, em.firm_name, em.region, em.recipient_name, em.recipient_email,
+            em.website, em.subject, em.body, "; ".join(em.value_props_used), em.word_count, em.created_at
+        ])
+    output.seek(0)
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=quanteinstein_cold_outreach_emails.csv"}
     )
 
 

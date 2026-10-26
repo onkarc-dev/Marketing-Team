@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPresets();
   initForm();
   initBatch();
+  initProspector();
   loadSamplePreset("slippage");
 });
 
@@ -404,3 +405,162 @@ function escapeQuotes(str) {
   if (!str) return "";
   return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
+
+// =====================================================================
+// Web Search, Scraper & Cold Email Outreach Logic
+// =====================================================================
+
+let currentCampaignData = null;
+
+function initProspector() {
+  const form = document.getElementById("prospectorForm");
+  const runBtn = document.getElementById("runSearchBtn");
+  const spinner = document.getElementById("searchSpinner");
+  const exportBtn = document.getElementById("exportEmailsBtn");
+
+  // Region quick selector buttons
+  document.querySelectorAll("[data-region-preset]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const reg = btn.getAttribute("data-region-preset");
+      document.getElementById("targetRegion").value = reg;
+    });
+  });
+
+  // Run full discovery campaign
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const queryPayload = {
+      niche: document.getElementById("targetNiche").value.trim(),
+      region: document.getElementById("targetRegion").value.trim(),
+      firm_type: document.getElementById("targetFirmType").value.trim(),
+      num_results: parseInt(document.getElementById("targetCount").value, 10),
+      sender_name: document.getElementById("senderName").value.trim() || "Technical Founder"
+    };
+
+    if (!queryPayload.niche || !queryPayload.region) {
+      alert("Please enter both target trading niche and region area.");
+      return;
+    }
+
+    runBtn.disabled = true;
+    spinner.style.display = "inline-block";
+
+    try {
+      const resp = await fetch("/api/discovery/run-campaign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queryPayload)
+      });
+
+      if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+      const data = await resp.json();
+      currentCampaignData = data;
+
+      renderDiscoveredFirms(data.leads);
+      renderGeneratedEmails(data.emails);
+      showToast(`Analyzed web and crafted ${data.emails.length} personalized cold emails!`);
+    } catch (err) {
+      console.error("Discovery failed:", err);
+      alert("Web discovery failed: " + err.message);
+    } finally {
+      runBtn.disabled = false;
+      spinner.style.display = "none";
+    }
+  });
+
+  exportBtn.addEventListener("click", () => {
+    window.location.href = "/api/discovery/export-emails";
+  });
+}
+
+function renderDiscoveredFirms(leads) {
+  const countBadge = document.getElementById("discoveredCount");
+  const container = document.getElementById("firmListContainer");
+
+  countBadge.textContent = `${leads.length} firms found`;
+  container.innerHTML = "";
+
+  if (!leads || leads.length === 0) {
+    container.innerHTML = `<p class="text-secondary" style="font-size:0.8rem; padding: 1rem 0;">No matching firms found for this region.</p>`;
+    return;
+  }
+
+  leads.forEach(lead => {
+    const card = document.createElement("div");
+    card.className = "firm-card";
+    const tags = (lead.strategies_detected || []).map(s => `<span class="tag-strategy">${escapeHtml(s)}</span>`).join("");
+
+    card.innerHTML = `
+      <div class="firm-card-header">
+        <span class="firm-title">${escapeHtml(lead.firm_name)}</span>
+        <span class="firm-region-badge">${escapeHtml(lead.region)}</span>
+      </div>
+      <div class="firm-meta-line">
+        <span>🌐 <a href="${escapeHtml(lead.website)}" target="_blank" style="color:#58a6ff; text-decoration:none;">${escapeHtml(lead.website.replace("https://", ""))}</a></span>
+        <span>✉️ <span class="firm-email-highlight">${escapeHtml(lead.email)}</span></span>
+      </div>
+      <p class="firm-summary-text">${escapeHtml(lead.summary)}</p>
+      <div class="firm-tags-flex">${tags}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderGeneratedEmails(emails) {
+  const emptyState = document.getElementById("emailEmptyState");
+  const resultsView = document.getElementById("emailResultsView");
+  const container = document.getElementById("emailCardsContainer");
+
+  emptyState.style.display = "none";
+  resultsView.style.display = "block";
+  container.innerHTML = "";
+
+  if (!emails || emails.length === 0) {
+    emptyState.style.display = "block";
+    resultsView.style.display = "none";
+    return;
+  }
+
+  emails.forEach((em, idx) => {
+    const card = document.createElement("div");
+    card.className = "email-card";
+
+    const mailtoLink = `mailto:${encodeURIComponent(em.recipient_email)}?subject=${encodeURIComponent(em.subject)}&body=${encodeURIComponent(em.body)}`;
+
+    card.innerHTML = `
+      <div class="email-card-header">
+        <div class="email-row">
+          <span class="email-row-label">FIRM:</span>
+          <span class="email-row-val">${escapeHtml(em.firm_name)} (${escapeHtml(em.region)})</span>
+        </div>
+        <div class="email-row">
+          <span class="email-row-label">TO:</span>
+          <span class="email-row-val" style="color:#3fb950;">${escapeHtml(em.recipient_email)}</span>
+          <span style="color:#8b949e; margin-left: 0.5rem;">[${escapeHtml(em.recipient_name)}]</span>
+        </div>
+        <div class="email-row">
+          <span class="email-row-label">SUBJECT:</span>
+          <span class="email-subject-val">${escapeHtml(em.subject)}</span>
+        </div>
+      </div>
+
+      <div class="email-body-box">${escapeHtml(em.body)}</div>
+
+      <div class="email-card-footer">
+        <div class="constraints-checklist">
+          <span>✓ Tailored to their strategies</span>
+          <span>✓ Bridges Quanteinstein sandbox</span>
+          <span>✓ ${em.word_count} words</span>
+        </div>
+        <div class="email-footer-actions">
+          <button class="btn btn-small" onclick="copyText('${escapeQuotes(em.subject)}')">Copy Subject</button>
+          <button class="btn btn-copy" onclick="copyText('${escapeQuotes(em.body)}')">Copy Full Email</button>
+          <a href="${mailtoLink}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+

@@ -37,6 +37,10 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
         Batch CSV Processor
       </button>
+      <button class="tab-btn" data-tab="prospectorTab">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        Web Search & Cold Email Agent
+      </button>
       <button class="tab-btn" data-tab="rulesTab">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         Target Context & Rules
@@ -246,7 +250,100 @@
       </section>
     </main>
 
-    <!-- TAB 3: Target Context & Rules -->
+    <!-- TAB 3: Web Search & Cold Email Agent -->
+    <main class="tab-content" id="prospectorTab" style="display:none;">
+      <div class="workspace-grid">
+        <!-- Search Query Form Column -->
+        <section class="card input-card">
+          <div class="card-header">
+            <h2>Web Prospecting & Cold Email Generator</h2>
+            <div class="preset-group">
+              <span class="preset-label">Region Quick Select:</span>
+              <button class="btn-preset" data-region-preset="London, UK">London</button>
+              <button class="btn-preset" data-region-preset="New York, NY">New York</button>
+              <button class="btn-preset" data-region-preset="Singapore">Singapore</button>
+              <button class="btn-preset" data-region-preset="Chicago, IL">Chicago</button>
+              <button class="btn-preset" data-region-preset="Dubai, UAE">Dubai</button>
+              <button class="btn-preset" data-region-preset="Zurich, Switzerland">Zurich</button>
+            </div>
+          </div>
+
+          <form id="prospectorForm">
+            <div class="form-group">
+              <label>Target Trading Niche <span class="required">*</span></label>
+              <input type="text" id="targetNiche" placeholder="e.g. quantitative hedge fund, prop trading desk, statistical arbitrage" value="quantitative hedge fund">
+            </div>
+
+            <div class="meta-inputs">
+              <div class="form-group flex-1">
+                <label>Region / City / Area <span class="required">*</span></label>
+                <input type="text" id="targetRegion" placeholder="e.g. London, UK or New York, NY" value="London, UK">
+              </div>
+              <div class="form-group flex-1">
+                <label>Firm Stage / Type</label>
+                <input type="text" id="targetFirmType" placeholder="e.g. emerging hedge fund, newly launched" value="emerging hedge fund (first 6 months)">
+              </div>
+            </div>
+
+            <div class="meta-inputs">
+              <div class="form-group flex-1">
+                <label>Number of Firms to Find & Analyze</label>
+                <select id="targetCount" class="custom-select">
+                  <option value="3" selected>3 Target Firms</option>
+                  <option value="5">5 Target Firms</option>
+                  <option value="10">10 Target Firms</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label>Sender Name (Email Signature)</label>
+                <input type="text" id="senderName" value="Technical Founder">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="runSearchBtn">
+                <span class="spinner" id="searchSpinner" style="display:none;"></span>
+                Search Web, Scrape Contacts & Generate Cold Emails
+              </button>
+            </div>
+          </form>
+
+          <div class="lead-list-section" style="margin-top: 1.5rem;">
+            <div class="section-header-flex">
+              <label class="section-title">DISCOVERED TARGET FIRMS</label>
+              <span id="discoveredCount" class="badge-mini">0 firms found</span>
+            </div>
+            <div class="firm-list" id="firmListContainer">
+              <p class="text-secondary" style="font-size:0.8rem; padding: 1rem 0;">Enter a region and niche above, then click <strong>Search Web & Generate Cold Emails</strong>.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Generated Emails Output Column -->
+        <section class="card output-card">
+          <div class="card-header">
+            <h2>Generated Tailored Cold Emails</h2>
+            <div class="output-actions">
+              <button class="btn btn-small" id="exportEmailsBtn">Download All Emails (.csv)</button>
+            </div>
+          </div>
+
+          <div class="empty-state" id="emailEmptyState">
+            <div class="empty-icon">✉️</div>
+            <h3>No Emails Generated Yet</h3>
+            <p>Run web discovery to analyze prospect firm strategies and automatically craft tailored cold emails bridging their work into Quanteinstein.</p>
+          </div>
+
+          <div class="email-results-view" id="emailResultsView" style="display:none;">
+            <div class="email-cards-container" id="emailCardsContainer">
+              <!-- Dynamically populated email cards -->
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 4: Target Context & Rules -->
     <main class="tab-content" id="rulesTab" style="display:none;">
       <div class="rules-grid">
         <section class="card">

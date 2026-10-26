@@ -15,12 +15,14 @@ from app.config import settings
 from app.models import (
     ProspectInput, AnalysisResult, EnrichedProspectRecord,
     BatchAnalysisRequest, BatchAnalysisResponse, SystemStats,
-    SearchQueryRequest, DiscoveredLead, GeneratedEmail, CampaignRunResponse
+    SearchQueryRequest, DiscoveredLead, GeneratedEmail, CampaignRunResponse,
+    SendEmailRequest
 )
 from app.analyzer import B2BIntelligenceAnalyzer
 from app.storage import ProspectStorage
 from app.discovery import WebDiscoveryEngine
 from app.email_generator import EmailOutreachGenerator
+from app.email_sender import EmailDispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +58,9 @@ async def health_check():
         "project": settings.PROJECT_NAME,
         "provider": settings.LLM_PROVIDER,
         "gemini_configured": bool(settings.GEMINI_API_KEY),
-        "openai_configured": bool(settings.OPENAI_API_KEY)
+        "openai_configured": bool(settings.OPENAI_API_KEY),
+        "smtp_configured": bool(settings.SMTP_USER and settings.SMTP_PASSWORD),
+        "smtp_user": settings.SMTP_USER or ""
     }
 
 
@@ -71,8 +75,17 @@ async def get_config():
         "min_score_for_outreach": settings.MIN_SCORE_FOR_OUTREACH,
         "llm_provider": settings.LLM_PROVIDER,
         "gemini_model": settings.GEMINI_MODEL,
-        "openai_model": settings.OPENAI_MODEL
+        "openai_model": settings.OPENAI_MODEL,
+        "smtp_configured": bool(settings.SMTP_USER and settings.SMTP_PASSWORD),
+        "smtp_user": settings.SMTP_USER or ""
     }
+
+
+@app.post("/api/smtp/test")
+async def test_smtp():
+    """Tests the SMTP connection using configured .env credentials."""
+    return EmailDispatcher.test_connection()
+
 
 
 @app.post("/api/analyze/strict", response_model=AnalysisResult)
@@ -271,6 +284,23 @@ async def export_campaign_emails():
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=quanteinstein_cold_outreach_emails.csv"}
     )
+
+
+@app.post("/api/discovery/send-email")
+async def send_single_email(req: SendEmailRequest):
+    """Dispatches a single cold outreach email directly via user's SMTP/Gmail account."""
+    result = EmailDispatcher.send_email(
+        recipient_email=req.recipient_email,
+        subject=req.subject,
+        body=req.body,
+        sender_email=req.sender_email,
+        smtp_password=req.smtp_password,
+        smtp_host=req.smtp_host,
+        smtp_port=req.smtp_port
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("message"))
+    return result
 
 
 # Mount static directory for frontend

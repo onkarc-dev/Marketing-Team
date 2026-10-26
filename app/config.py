@@ -53,4 +53,11 @@ class Settings(BaseModel):
     # Database
     DB_PATH: str = Field(default_factory=lambda: os.getenv("DB_PATH", "prospects.db"))
 
+    # Local Email (SMTP) Configuration
+    SMTP_HOST: str = Field(default_factory=lambda: os.getenv("SMTP_HOST", "smtp.gmail.com"))
+    SMTP_PORT: int = Field(default_factory=lambda: int(os.getenv("SMTP_PORT", "587")))
+    SMTP_USER: str = Field(default_factory=lambda: os.getenv("SMTP_USER", ""))
+    SMTP_PASSWORD: str = Field(default_factory=lambda: os.getenv("SMTP_PASSWORD", ""))
+    SENDER_NAME: str = Field(default_factory=lambda: os.getenv("SENDER_NAME", "Technical Founder"))
+
 settings = Settings()

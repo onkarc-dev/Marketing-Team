@@ -170,3 +170,14 @@ class CampaignRunResponse(BaseModel):
     leads: List[DiscoveredLead]
     emails: List[GeneratedEmail]
 
+
+class SendEmailRequest(BaseModel):
+    """Payload to dispatch an email via SMTP."""
+    recipient_email: str
+    subject: str
+    body: str
+    sender_email: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+

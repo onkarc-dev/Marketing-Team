@@ -130,7 +130,7 @@ async def run_batch_file(filepath: str, output_file: str = None):
         print(f"{Fore.CYAN}Saved strict results to: {output_file}{Style.RESET_ALL}")
 
 
-async def run_regional_prospecting(niche: str, region: str, firm_type: str = "emerging hedge fund", count: int = 5, sender: str = "Technical Founder", out_file: str = None):
+async def run_regional_prospecting(niche: str, region: str, firm_type: str = "emerging hedge fund", count: int = 5, sender: str = "Technical Founder", out_file: str = None, send_now: bool = False):
     print_banner()
     print(f"{Fore.CYAN}[*] Initiating Agent Web Search & Lead Intelligence:{Style.RESET_ALL}")
     print(f"  * Niche:  {Fore.WHITE}{niche}{Style.RESET_ALL}")
@@ -161,11 +161,58 @@ async def run_regional_prospecting(niche: str, region: str, firm_type: str = "em
         print(f"{Fore.CYAN}Body:{Style.RESET_ALL}\n{email.body}")
         print(f"{Fore.GREEN}----------------------------------------------------------------------{Style.RESET_ALL}\n")
 
+        if send_now:
+            from app.email_sender import EmailDispatcher
+            print(f"{Fore.YELLOW}[*] Sending email to {email.recipient_email} via local SMTP...{Style.RESET_ALL}")
+            dispatch_res = EmailDispatcher.send_email(
+                recipient_email=email.recipient_email,
+                subject=email.subject,
+                body=email.body
+            )
+            if dispatch_res.get("success"):
+                print(f"{Fore.GREEN}[+] {dispatch_res.get('message')}{Style.RESET_ALL}\n")
+            else:
+                print(f"{Fore.RED}[-] {dispatch_res.get('message')}{Style.RESET_ALL}\n")
+
     if out_file:
         out_dicts = [e.model_dump() for e in generated_emails]
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(out_dicts, f, indent=2)
         print(f"{Fore.CYAN}Saved all drafted emails to: {out_file}{Style.RESET_ALL}")
+
+
+def run_test_smtp():
+    print_banner()
+    print(f"{Fore.CYAN}[*] Testing Local SMTP Email Connection...{Style.RESET_ALL}")
+    from app.email_sender import EmailDispatcher
+    result = EmailDispatcher.test_connection()
+    if result.get("connected"):
+        print(f"{Fore.GREEN}[+] SUCCESS: {result.get('message')}{Style.RESET_ALL}")
+        print(f"    Account: {result.get('user')}")
+        print(f"    Server:  {result.get('host')}:{result.get('port')}")
+        print(f"{Fore.CYAN}[*] Your email account is connected and ready to send outreach!{Style.RESET_ALL}\n")
+    else:
+        print(f"{Fore.RED}[-] CONNECTION FAILED: {result.get('message')}{Style.RESET_ALL}\n")
+        print(f"{Fore.YELLOW}Setup Instructions for Personal Gmail/Outlook:{Style.RESET_ALL}")
+        print("  1. Gmail requires a Google App Password (not your normal password).")
+        print("  2. Turn on 2-Step Verification at: https://myaccount.google.com/signinoptions/two-step-verification")
+        print("  3. Create an App Password at: https://myaccount.google.com/apppasswords")
+        print("  4. Open .env in this folder and set:")
+        print("       SMTP_HOST=smtp.gmail.com")
+        print("       SMTP_PORT=587")
+        print("       SMTP_USER=your_email@gmail.com")
+        print("       SMTP_PASSWORD=your_16_char_app_password")
+        print("  5. Re-run: python main.py test-smtp\n")
+
+
+def run_cli_send_email(to: str, subject: str, body: str):
+    from app.email_sender import EmailDispatcher
+    print(f"{Fore.CYAN}[*] Sending email to {to}...{Style.RESET_ALL}")
+    res = EmailDispatcher.send_email(recipient_email=to, subject=subject, body=body)
+    if res.get("success"):
+        print(f"{Fore.GREEN}[+] {res.get('message')}{Style.RESET_ALL}")
+    else:
+        print(f"{Fore.RED}[-] {res.get('message')}{Style.RESET_ALL}")
 
 
 def main():
@@ -180,6 +227,16 @@ def main():
     p_prospect.add_argument("--count", type=int, default=3, help="Number of firms to research")
     p_prospect.add_argument("--sender", default="Technical Founder", help="Sender name for email signature")
     p_prospect.add_argument("--out", default=None, help="Output JSON path to save emails")
+    p_prospect.add_argument("--send", action="store_true", help="Directly send emails via SMTP after drafting")
+
+    # Command: test-smtp
+    subparsers.add_parser("test-smtp", help="Test local email connection (Gmail / Outlook / Custom SMTP)")
+
+    # Command: send-email
+    p_send = subparsers.add_parser("send-email", help="Send a single email via configured SMTP")
+    p_send.add_argument("--to", required=True, help="Recipient email address")
+    p_send.add_argument("--subject", required=True, help="Email subject line")
+    p_send.add_argument("--body", required=True, help="Email body content")
 
     # Command: analyze
     p_analyze = subparsers.add_parser("analyze", help="Analyze a single prospect")
@@ -247,11 +304,17 @@ def main():
             firm_type=args.firm_type,
             count=args.count,
             sender=args.sender,
-            out_file=args.out
+            out_file=args.out,
+            send_now=args.send
         ))
+    elif args.command == "test-smtp":
+        run_test_smtp()
+    elif args.command == "send-email":
+        run_cli_send_email(args.to, args.subject, args.body)
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
     main()
+

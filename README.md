@@ -84,27 +84,80 @@ Marketing-Team/
 
 ---
 
-## 🚀 Quickstart
+## 🚀 Quickstart: Run 100% Locally on Your Windows Laptop
 
-### 1. Installation
+No cloud deployment or Docker is required. You can run the entire engine locally on your laptop, connect your personal email account to dispatch cold emails directly, and connect to LinkedIn for 1-click connection note dispatch.
 
-```bash
-# Clone the repository
-git clone https://github.com/onkarc-dev/Marketing-Team.git
-cd Marketing-Team
+### 1. Windows Command Prompt (`cmd`) / PowerShell Setup
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+Open your terminal or `cmd` in `C:\Marketing Team`:
 
-# Install dependencies
+```cmd
+:: 1. Activate your local virtual environment
+.venv\Scripts\activate
+
+:: 2. (Optional) Install dependencies if not already installed
 pip install -r requirements.txt
-
-# Configure environment (optional - runs in offline heuristic mode by default)
-cp .env.example .env
 ```
 
+---
+
+## ✉️ Connect Your Personal Email (Gmail / Outlook / Custom SMTP)
+
+You can send real cold outreach directly from your personal inbox through local SMTP:
+
+1. **For Gmail Accounts:**
+   - Turn on **2-Step Verification** on your Google Account: [https://myaccount.google.com/signinoptions/two-step-verification](https://myaccount.google.com/signinoptions/two-step-verification)
+   - Generate an **App Password**: Go to [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), select "Other", enter `Marketing-Team`, and copy the 16-character password.
+2. **For Outlook / Office 365:**
+   - Host: `smtp.office365.com`, Port: `587`.
+3. **Configure `.env`**:
+   Open `.env` in `C:\Marketing Team` and set your credentials:
+   ```ini
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASSWORD=your_16_char_app_password
+   SENDER_NAME=Technical Founder
+   ```
+4. **Test Your Email Connection in CMD:**
+   ```cmd
+   python main.py test-smtp
+   ```
+   *You will see:* `[+] SUCCESS: Successfully connected and authenticated as your_email@gmail.com!`
+
+---
+
+## 🔗 Connect Your LinkedIn Account (Safe 1-Click Dispatch)
+
+To protect your LinkedIn account from bot detection and scraping bans, the system uses a **safe, instant 1-click clipboard integration**:
+
+1. Make sure you are logged into [linkedin.com](https://www.linkedin.com) in your regular web browser.
+2. When any prospect scores **8 or higher**, click **"Connect on LinkedIn (Copy & Open)"** in the dashboard.
+3. The engine automatically copies the **≤ 45-word personalized hook** to your Windows clipboard and opens the prospect's profile or search page.
+4. Click **Connect** &rarr; **Add a note** &rarr; press `Ctrl + V` &rarr; **Send**. *(Takes 3 seconds, zero ban risk!)*
+
+---
+
+## 💻 Exact Command Line (`cmd`) Cheat-Sheet
+
+| Action | Windows Command |
+| :--- | :--- |
+| **Launch Web Dashboard** | `python main.py` *(opens at `http://127.0.0.1:8000`)* |
+| **Test Email Connection** | `python main.py test-smtp` |
+| **Web Search & Draft Cold Emails** | `python main.py prospect --region "London, UK" --niche "quantitative hedge fund" --count 3` |
+| **Search, Draft & SEND via Email** | `python main.py prospect --region "New York, NY" --count 3 --send` |
+| **Send Single Test Email** | `python main.py send-email --to "target@example.com" --subject "Test Sandbox" --body "Hi there"` |
+| **Analyze Single Prospect** | `python main.py analyze --bio "Managing quant fund" --posts "Slippage is killing our alpha"` |
+| **Analyze Strict JSON Only** | `python main.py analyze --bio "Managing quant fund" --posts "Slippage friction" --strict` |
+| **Process Batch CSV Leads** | `python main.py batch --file data\sample_prospects.csv` |
+| **Show Intelligence Stats** | `python main.py stats` |
+| **Run All 24 Unit Tests** | `python -m unittest discover tests` |
+
+---
+
 ### 2. Run the Interactive Web Dashboard
+
 
 ```bash
 python main.py

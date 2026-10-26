@@ -21,7 +21,8 @@ def start_server(host: str = None, port: int = None, reload: bool = None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] in ("cli", "analyze", "batch", "stats", "interactive", "prospect"):
+    cli_commands = ("cli", "analyze", "batch", "stats", "interactive", "prospect", "test-smtp", "send-email")
+    if len(sys.argv) > 1 and (sys.argv[1] in cli_commands or sys.argv[1] in ("--help", "-h")):
         from app.cli import main as cli_main
         # If user typed 'python main.py cli ...', strip 'cli'
         if sys.argv[1] == "cli":
@@ -29,3 +30,4 @@ if __name__ == "__main__":
         cli_main()
     else:
         start_server()
+

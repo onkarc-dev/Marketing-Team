@@ -22,9 +22,11 @@
       </div>
       <div class="system-status">
         <span class="status-pill active" id="providerStatus"><span class="pulse"></span> Engine: Heuristic NLP</span>
+        <span class="status-pill" id="smtpStatusPill"><span class="dot"></span> Email: Checking...</span>
         <span class="status-pill"><span class="dot"></span> Max Words: 45</span>
         <span class="status-pill"><span class="dot"></span> Threshold: Score ≥ 8</span>
       </div>
+
     </header>
 
     <!-- Navigation Tabs -->
@@ -163,11 +165,18 @@
                   <span class="check-item" id="chkAsk">✓ Low friction ask</span>
                   <span class="check-item" id="chkWords">✓ ≤ 45 words</span>
                 </div>
-                <button class="btn btn-copy" id="copyBtn">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                  Copy Message
-                </button>
+                <div class="message-footer-actions" style="display:flex; gap:8px;">
+                  <button class="btn btn-copy" id="copyBtn">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Copy Message
+                  </button>
+                  <button class="btn btn-linkedin" id="openLinkedInBtn" style="background:#0a66c2; color:white; border:none; display:none; align-items:center; gap:6px;">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                    Connect on LinkedIn (Copy & Open)
+                  </button>
+                </div>
               </div>
+
             </div>
 
             <!-- Raw JSON Output Block -->
@@ -386,8 +395,49 @@
             <li><strong>Rule 5:</strong> Zero buzzwords. Tired, brilliant engineer tone.</li>
           </ul>
         </section>
+
+        <section class="card" style="grid-column: 1 / -1; margin-top: 1rem;">
+          <h2>Local Setup & Direct Execution Guide</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <div style="background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:1.2rem;">
+              <h3 style="color:#58a6ff; font-size:1rem; margin-bottom:0.6rem; display:flex; align-items:center; gap:8px;">
+                <span>✉️</span> 1. Connect Personal Email ID (Gmail / Outlook)
+              </h3>
+              <p style="font-size:0.83rem; color:#8b949e; line-height:1.5; margin-bottom:0.8rem;">
+                Send real cold outreach directly from your personal inbox through local SMTP:
+              </p>
+              <ol style="font-size:0.8rem; color:#c9d1d9; padding-left:1.2rem; line-height:1.6;">
+                <li>For Gmail: Turn on <strong>2-Step Verification</strong> on your Google Account.</li>
+                <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#58a6ff;">myaccount.google.com/apppasswords</a> and generate a 16-character App Password.</li>
+                <li>Open <code>.env</code> in your folder and fill in:
+                  <pre style="background:#161b22; padding:0.4rem; border-radius:4px; margin:0.4rem 0;">SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx</pre>
+                </li>
+                <li>Verify in CMD: <code>python main.py test-smtp</code></li>
+              </ol>
+            </div>
+
+            <div style="background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:1.2rem;">
+              <h3 style="color:#3fb950; font-size:1rem; margin-bottom:0.6rem; display:flex; align-items:center; gap:8px;">
+                <span>🔗</span> 2. Connect Your LinkedIn Account
+              </h3>
+              <p style="font-size:0.83rem; color:#8b949e; line-height:1.5; margin-bottom:0.8rem;">
+                Avoid account ban risks from automated scraper bots. Send connection requests 100% safely:
+              </p>
+              <ol style="font-size:0.8rem; color:#c9d1d9; padding-left:1.2rem; line-height:1.6;">
+                <li>Ensure you are logged into <a href="https://www.linkedin.com" target="_blank" style="color:#58a6ff;">linkedin.com</a> in your default web browser.</li>
+                <li>When any prospect scores <strong>8 or higher</strong>, click <strong>"Connect on LinkedIn"</strong>.</li>
+                <li>The engine copies the exact <strong>≤ 45-word hook</strong> to your Windows clipboard and opens the prospect's profile directly.</li>
+                <li>Click <strong>Connect</strong> &rarr; <strong>Add a note</strong> &rarr; press <code>Ctrl + V</code> &rarr; <strong>Send</strong> (takes 3 seconds!).</li>
+              </ol>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
+
   </div>
 
   <div class="toast" id="toastNotification">Message copied to clipboard!</div>

@@ -55,8 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initForm();
   initBatch();
   initProspector();
+  checkSmtpStatus();
   loadSamplePreset("slippage");
 });
+
 
 // Tab Navigation
 function initTabs() {
@@ -161,11 +163,26 @@ function initForm() {
     });
   });
 
+  const openLinkedInBtn = document.getElementById("openLinkedInBtn");
+  if (openLinkedInBtn) {
+    openLinkedInBtn.addEventListener("click", () => {
+      if (!currentResult || !currentResult.message) return;
+      navigator.clipboard.writeText(currentResult.message).then(() => {
+        showToast("Note copied! Opening LinkedIn to connect...");
+        const name = document.getElementById("pName").value.trim();
+        const company = document.getElementById("pCompany").value.trim();
+        const targetUrl = currentResult.linkedin_url || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(name + ' ' + company)}`;
+        window.open(targetUrl, "_blank");
+      });
+    });
+  }
+
   toggleJsonBtn.addEventListener("click", () => {
     const rawBlock = document.getElementById("rawJsonBlock");
     rawBlock.style.display = rawBlock.style.display === "none" ? "block" : "none";
   });
 }
+
 
 function resetOutput() {
   document.getElementById("emptyState").style.display = "block";
@@ -226,17 +243,21 @@ function renderResult(data) {
   const wordBadge = document.getElementById("wordCounterBadge");
   const wordCountNum = document.getElementById("wordCountNum");
   const copyBtn = document.getElementById("copyBtn");
+  const openLinkedInBtn = document.getElementById("openLinkedInBtn");
 
   if (data.score >= 8 && data.message) {
     msgContent.textContent = data.message;
     wordCountNum.textContent = data.word_count;
     wordBadge.className = data.word_count <= 45 ? "word-counter" : "word-counter over";
     copyBtn.style.display = "inline-flex";
+    if (openLinkedInBtn) openLinkedInBtn.style.display = "inline-flex";
   } else {
     msgContent.textContent = `No outreach message drafted (Score ${data.score} is below outreach threshold 8 -> PASS).`;
     wordCountNum.textContent = 0;
     copyBtn.style.display = "none";
+    if (openLinkedInBtn) openLinkedInBtn.style.display = "none";
   }
+
 
   // Strict JSON view
   const strictJson = {
@@ -376,10 +397,23 @@ function renderBatchTable(leads) {
       <td style="max-width:280px; font-size:0.78rem;">${escapeHtml(r.reasoning)}</td>
       <td style="max-width:320px; font-size:0.8rem;">${messageCell}</td>
       <td>
-        ${r.message ? `<button class="btn-copy" onclick="copyText('${escapeQuotes(r.message)}')">Copy</button>` : '-'}
+        ${r.message ? `
+          <div style="display:flex; gap:4px;">
+            <button class="btn-copy" onclick="copyText('${escapeQuotes(r.message)}')">Copy</button>
+            <button class="btn-small" style="background:#0a66c2; color:white; border:none; padding:4px 8px;" onclick="openLinkedInForLead('${escapeQuotes(r.name)}', '${escapeQuotes(r.company)}', '${escapeQuotes(r.message)}')">LinkedIn</button>
+          </div>
+        ` : '-'}
       </td>
     `;
     tbody.appendChild(tr);
+  });
+}
+
+function openLinkedInForLead(name, company, message) {
+  navigator.clipboard.writeText(message).then(() => {
+    showToast("Connection note copied! Opening LinkedIn...");
+    const targetUrl = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(name + ' ' + company)}`;
+    window.open(targetUrl, "_blank");
   });
 }
 
@@ -395,6 +429,7 @@ function copyText(txt) {
     showToast("Message copied to clipboard!");
   });
 }
+
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -557,10 +592,65 @@ function renderGeneratedEmails(emails) {
           <button class="btn btn-small" onclick="copyText('${escapeQuotes(em.subject)}')">Copy Subject</button>
           <button class="btn btn-copy" onclick="copyText('${escapeQuotes(em.body)}')">Copy Full Email</button>
           <a href="${mailtoLink}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
+          <button class="btn btn-small" style="background:#238636; color:white; border:none;" onclick="sendEmailViaSmtp(${idx}, this)">Send via SMTP (1-Click)</button>
         </div>
       </div>
     `;
     container.appendChild(card);
   });
 }
+
+async function sendEmailViaSmtp(idx, btn) {
+  if (!currentCampaignData || !currentCampaignData.emails || !currentCampaignData.emails[idx]) return;
+  const em = currentCampaignData.emails[idx];
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+
+  try {
+    const resp = await fetch("/api/discovery/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipient_email: em.recipient_email,
+        subject: em.subject,
+        body: em.body,
+        recipient_name: em.recipient_name
+      })
+    });
+
+    const res = await resp.json();
+    if (!resp.ok) {
+      throw new Error(res.detail || "Failed to send email");
+    }
+    btn.textContent = "✓ Sent!";
+    btn.style.background = "#1f6feb";
+    showToast(`Email dispatched to ${em.recipient_email}!`);
+  } catch (err) {
+    console.error("SMTP dispatch error:", err);
+    alert("Email dispatch failed: " + err.message + "\n\nMake sure SMTP_USER and SMTP_PASSWORD are set in your .env file.");
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+async function checkSmtpStatus() {
+  try {
+    const resp = await fetch("/api/health");
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const pill = document.getElementById("smtpStatusPill");
+    if (!pill) return;
+    if (data.smtp_configured) {
+      pill.innerHTML = `<span class="pulse" style="background:#3fb950;"></span> Email: ${escapeHtml(data.smtp_user)}`;
+      pill.classList.add("active");
+    } else {
+      pill.innerHTML = `<span class="dot"></span> Email: Not Configured`;
+      pill.classList.remove("active");
+    }
+  } catch (e) {
+    console.error("Health check error:", e);
+  }
+}
+
 

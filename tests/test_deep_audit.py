@@ -125,6 +125,31 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertEqual(data["total"], 0)
         self.assertEqual(data["average_score"], 0.0)
 
+    def test_smtp_test_connection_unconfigured(self):
+        """Verifies test_connection returns clean failure when unconfigured without crashing."""
+        from app.email_sender import EmailDispatcher
+        result = EmailDispatcher.test_connection(sender_email="", smtp_password="")
+        self.assertFalse(result["connected"])
+        self.assertIn("credentials missing", result["message"].lower())
+
+    def test_api_smtp_test_endpoint(self):
+        """Verifies POST /api/smtp/test endpoint responds with 200."""
+        resp = self.client.post("/api/smtp/test")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("connected", data)
+
+    def test_api_send_email_unconfigured_error_handling(self):
+        """Verifies /api/discovery/send-email returns 400 with helpful explanation when unconfigured."""
+        resp = self.client.post("/api/discovery/send-email", json={
+            "recipient_email": "target@quantfirm.com",
+            "subject": "Test Strategy Sandbox",
+            "body": "Hi there, checking execution friction."
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("detail", resp.json())
+
 
 if __name__ == "__main__":
     unittest.main()
+

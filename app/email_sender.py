@@ -33,8 +33,11 @@ class EmailDispatcher:
         - Outlook (smtp.office365.com:587)
         - Custom SMTP server
         """
-        user = sender_email or getattr(settings, "SMTP_USER", "")
-        pwd = smtp_password or getattr(settings, "SMTP_PASSWORD", "")
+        user = (sender_email or getattr(settings, "SMTP_USER", "")).strip()
+        pwd = (smtp_password or getattr(settings, "SMTP_PASSWORD", "")).strip()
+        if " " in pwd and len(pwd.replace(" ", "")) == 16:
+            pwd = pwd.replace(" ", "")
+
         host = smtp_host or getattr(settings, "SMTP_HOST", "smtp.gmail.com")
         port = smtp_port or getattr(settings, "SMTP_PORT", 587)
 
@@ -43,6 +46,7 @@ class EmailDispatcher:
                 "success": False,
                 "message": "SMTP credentials not provided. Set SMTP_USER and SMTP_PASSWORD in .env or pass them directly."
             }
+
 
         try:
             msg = MIMEMultipart()
@@ -87,10 +91,14 @@ class EmailDispatcher:
         smtp_port: Optional[int] = None
     ) -> Dict[str, Any]:
         """Tests the SMTP connection and login authentication."""
-        user = sender_email or getattr(settings, "SMTP_USER", "")
-        pwd = smtp_password or getattr(settings, "SMTP_PASSWORD", "")
+        user = (sender_email or getattr(settings, "SMTP_USER", "")).strip()
+        pwd = (smtp_password or getattr(settings, "SMTP_PASSWORD", "")).strip()
+        if " " in pwd and len(pwd.replace(" ", "")) == 16:
+            pwd = pwd.replace(" ", "")
+
         host = smtp_host or getattr(settings, "SMTP_HOST", "smtp.gmail.com")
         port = smtp_port or getattr(settings, "SMTP_PORT", 587)
+
 
         if not user or not pwd:
             return {

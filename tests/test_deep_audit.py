@@ -140,14 +140,16 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertIn("connected", data)
 
     def test_api_send_email_unconfigured_error_handling(self):
-        """Verifies /api/discovery/send-email returns 400 with helpful explanation when unconfigured."""
+        """Verifies /api/discovery/send-email returns 400 with helpful explanation when credentials fail."""
         resp = self.client.post("/api/discovery/send-email", json={
             "recipient_email": "target@quantfirm.com",
             "subject": "Test Strategy Sandbox",
-            "body": "Hi there, checking execution friction."
+            "body": "Hi there, checking execution friction.",
+            "smtp_password": ""
         })
         self.assertEqual(resp.status_code, 400)
         self.assertIn("detail", resp.json())
+
 
 
 if __name__ == "__main__":

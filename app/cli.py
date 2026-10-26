@@ -130,7 +130,9 @@ async def run_batch_file(filepath: str, output_file: str = None):
         print(f"{Fore.CYAN}Saved strict results to: {output_file}{Style.RESET_ALL}")
 
 
-async def run_regional_prospecting(niche: str, region: str, firm_type: str = "emerging hedge fund", count: int = 5, sender: str = "Technical Founder", out_file: str = None, send_now: bool = False):
+async def run_regional_prospecting(niche: str, region: str, firm_type: str = "emerging hedge fund", count: int = 5, sender: str = None, out_file: str = None, send_now: bool = False):
+    sender_name = sender or getattr(settings, "SENDER_NAME", "Onkar (Founder, Quanteinstein)")
+
     print_banner()
     print(f"{Fore.CYAN}[*] Initiating Agent Web Search & Lead Intelligence:{Style.RESET_ALL}")
     print(f"  * Niche:  {Fore.WHITE}{niche}{Style.RESET_ALL}")
@@ -225,8 +227,9 @@ def main():
     p_prospect.add_argument("--niche", default="quantitative hedge fund", help="Target trading niche")
     p_prospect.add_argument("--firm-type", default="emerging hedge fund", help="Firm stage or type")
     p_prospect.add_argument("--count", type=int, default=3, help="Number of firms to research")
-    p_prospect.add_argument("--sender", default="Technical Founder", help="Sender name for email signature")
+    p_prospect.add_argument("--sender", default=getattr(settings, "SENDER_NAME", "Onkar (Founder, Quanteinstein)"), help="Sender name for email signature")
     p_prospect.add_argument("--out", default=None, help="Output JSON path to save emails")
+
     p_prospect.add_argument("--send", action="store_true", help="Directly send emails via SMTP after drafting")
 
     # Command: test-smtp

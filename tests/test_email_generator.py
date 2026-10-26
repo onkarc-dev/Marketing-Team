@@ -55,8 +55,9 @@ class TestDiscoveryAndEmailGenerator(unittest.TestCase):
         self.assertIn("New York, NY", email.body)
         self.assertIn("Statistical Arbitrage", email.body)
         self.assertIn("Quanteinstein", email.body)
-        self.assertIn("sandbox", email.body.lower())
+        self.assertIn("quanteinstein.com", email.body.lower())
         self.assertLessEqual(email.word_count, 170)
+
 
     def test_api_discovery_campaign_endpoint(self):
         """Integration test for POST /api/discovery/run-campaign."""

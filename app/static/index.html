@@ -320,8 +320,11 @@
 
           <div class="lead-list-section" style="margin-top: 1.5rem;">
             <div class="section-header-flex">
-              <label class="section-title">DISCOVERED TARGET FIRMS</label>
-              <span id="discoveredCount" class="badge-mini">0 firms found</span>
+              <label class="section-title">DISCOVERED TARGET FIRMS (UNCONTACTED)</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <span id="discoveredCount" class="badge-mini">0 firms found</span>
+                <span id="contactedCountBadge" class="badge-mini" style="background:#238636; color:white; display:none;">0 contacted excluded</span>
+              </div>
             </div>
             <div class="firm-list" id="firmListContainer">
               <p class="text-secondary" style="font-size:0.8rem; padding: 1rem 0;">Enter a region and niche above, then click <strong>Search Web & Generate Cold Emails</strong>.</p>
@@ -333,10 +336,12 @@
         <section class="card output-card">
           <div class="card-header">
             <h2>Generated Tailored Cold Emails</h2>
-            <div class="output-actions">
+            <div class="output-actions" style="display:flex; gap:8px;">
+              <button class="btn btn-small" id="viewSentBtn" style="background:#21262d; border:1px solid #30363d; color:#8b949e;">Contacted Suppression List (<span id="sentCounter">0</span>)</button>
               <button class="btn btn-small" id="exportEmailsBtn">Download All Emails (.csv)</button>
             </div>
           </div>
+
 
           <div class="empty-state" id="emailEmptyState">
             <div class="empty-icon">✉️</div>

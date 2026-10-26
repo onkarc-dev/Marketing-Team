@@ -47,7 +47,19 @@ class ProspectStorage:
                     created_at TEXT
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS sent_emails (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    recipient_email TEXT UNIQUE,
+                    recipient_name TEXT,
+                    firm_name TEXT,
+                    subject TEXT,
+                    sent_at TEXT,
+                    status TEXT
+                )
+            """)
             conn.commit()
+
 
     def save_prospect(self, record: EnrichedProspectRecord) -> None:
         """Insert or replace prospect record."""
@@ -123,3 +135,62 @@ class ProspectStorage:
             average_score=round(avg_score, 1),
             messages_drafted=messages_drafted
         )
+
+    def record_sent_email(
+        self,
+        recipient_email: str,
+        recipient_name: str = "",
+        firm_name: str = "",
+        subject: str = "",
+        status: str = "sent"
+    ) -> None:
+        """Records an outreach email as sent to prevent re-contacting."""
+        from datetime import datetime, timezone
+        now_iso = datetime.now(timezone.utc).isoformat()
+        clean_email = recipient_email.strip().lower()
+        clean_firm = firm_name.strip()
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO sent_emails (
+                    recipient_email, recipient_name, firm_name, subject, sent_at, status
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (clean_email, recipient_name, clean_firm, subject, now_iso, status))
+            conn.commit()
+
+    def get_sent_emails(self) -> set:
+        """Returns lowercase set of all emailed recipient addresses."""
+        with self._get_connection() as conn:
+            cursor = conn.execute("SELECT recipient_email FROM sent_emails")
+            return {r[0].strip().lower() for r in cursor.fetchall() if r[0]}
+
+    def get_sent_firms(self) -> set:
+        """Returns lowercase set of all firm names that have received an email."""
+        with self._get_connection() as conn:
+            cursor = conn.execute("SELECT firm_name FROM sent_emails WHERE firm_name IS NOT NULL AND firm_name != ''")
+            return {r[0].strip().lower() for r in cursor.fetchall() if r[0]}
+
+    def is_contacted(self, recipient_email: Optional[str] = None, firm_name: Optional[str] = None) -> bool:
+        """Checks if a recipient email or firm has already been contacted."""
+        if recipient_email and recipient_email.strip().lower() in self.get_sent_emails():
+            return True
+        if firm_name and firm_name.strip().lower() in self.get_sent_firms():
+            return True
+        return False
+
+    def get_sent_records(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Returns list of recently sent emails."""
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT id, recipient_email, recipient_name, firm_name, subject, sent_at, status FROM sent_emails ORDER BY sent_at DESC LIMIT ?",
+                (limit,)
+            )
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+
+    def clear_sent_history(self) -> None:
+        """Clears sent history (suppression list reset)."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM sent_emails")
+            conn.commit()
+

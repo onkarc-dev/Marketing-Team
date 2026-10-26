@@ -176,8 +176,11 @@ class SendEmailRequest(BaseModel):
     recipient_email: str
     subject: str
     body: str
+    recipient_name: Optional[str] = None
+    firm_name: Optional[str] = None
     sender_email: Optional[str] = None
     smtp_password: Optional[str] = None
     smtp_host: Optional[str] = None
     smtp_port: Optional[int] = None
+
 

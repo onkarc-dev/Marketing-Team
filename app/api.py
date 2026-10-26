@@ -300,7 +300,44 @@ async def send_single_email(req: SendEmailRequest):
     )
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("message"))
+
+    # Record email in sent suppression list to prevent duplicate outreach
+    firm_name = req.firm_name or ""
+    if not firm_name:
+        for em in active_campaign_emails:
+            if em.recipient_email.strip().lower() == req.recipient_email.strip().lower():
+                firm_name = em.firm_name
+                break
+
+    storage.record_sent_email(
+        recipient_email=req.recipient_email,
+        recipient_name=req.recipient_name or "",
+        firm_name=firm_name,
+        subject=req.subject,
+        status="sent"
+    )
+
     return result
+
+
+@app.get("/api/discovery/sent-emails")
+async def get_sent_emails():
+    """Returns all contacted firms and recipient emails."""
+    sent_list = list(storage.get_sent_emails())
+    return {
+        "sent_count": len(sent_list),
+        "sent_emails": sent_list,
+        "sent_firms": list(storage.get_sent_firms()),
+        "records": storage.get_sent_records()
+    }
+
+
+@app.post("/api/discovery/clear-sent-emails")
+async def clear_sent_emails():
+    """Clears sent history (suppression list reset)."""
+    storage.clear_sent_history()
+    return {"message": "Sent suppression list cleared successfully."}
+
 
 
 # Mount static directory for frontend

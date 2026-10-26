@@ -172,7 +172,15 @@ async def run_regional_prospecting(niche: str, region: str, firm_type: str = "em
                 body=email.body
             )
             if dispatch_res.get("success"):
-                print(f"{Fore.GREEN}[+] {dispatch_res.get('message')}{Style.RESET_ALL}\n")
+                storage = ProspectStorage()
+                storage.record_sent_email(
+                    recipient_email=email.recipient_email,
+                    recipient_name=email.recipient_name,
+                    firm_name=email.firm_name,
+                    subject=email.subject,
+                    status="sent"
+                )
+                print(f"{Fore.GREEN}[+] {dispatch_res.get('message')} [Recorded to suppression list]{Style.RESET_ALL}\n")
             else:
                 print(f"{Fore.RED}[-] {dispatch_res.get('message')}{Style.RESET_ALL}\n")
 
@@ -207,14 +215,17 @@ def run_test_smtp():
         print("  5. Re-run: python main.py test-smtp\n")
 
 
-def run_cli_send_email(to: str, subject: str, body: str):
+def run_cli_send_email(to: str, subject: str, body: str, firm: str = ""):
     from app.email_sender import EmailDispatcher
     print(f"{Fore.CYAN}[*] Sending email to {to}...{Style.RESET_ALL}")
     res = EmailDispatcher.send_email(recipient_email=to, subject=subject, body=body)
     if res.get("success"):
-        print(f"{Fore.GREEN}[+] {res.get('message')}{Style.RESET_ALL}")
+        storage = ProspectStorage()
+        storage.record_sent_email(recipient_email=to, firm_name=firm, subject=subject, status="sent")
+        print(f"{Fore.GREEN}[+] {res.get('message')} [Recorded to suppression list]{Style.RESET_ALL}")
     else:
         print(f"{Fore.RED}[-] {res.get('message')}{Style.RESET_ALL}")
+
 
 
 def main():

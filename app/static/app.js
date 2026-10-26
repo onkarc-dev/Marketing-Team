@@ -56,8 +56,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initBatch();
   initProspector();
   checkSmtpStatus();
+  updateSentSuppressionStats();
   loadSamplePreset("slippage");
 });
+
 
 
 // Tab Navigation
@@ -507,7 +509,33 @@ function initProspector() {
   exportBtn.addEventListener("click", () => {
     window.location.href = "/api/discovery/export-emails";
   });
+
+  const viewSentBtn = document.getElementById("viewSentBtn");
+  if (viewSentBtn) {
+    viewSentBtn.addEventListener("click", async () => {
+      try {
+        const resp = await fetch("/api/discovery/sent-emails");
+        const data = await resp.json();
+        if (!data.sent_count) {
+          alert("No outreach emails sent yet.\n\nOnce you send an email to a firm, they are automatically recorded to your suppression list and excluded from all future searches so you never send duplicates!");
+          return;
+        }
+        let summary = `Contacted Suppression List (${data.sent_count} total):\n\n`;
+        (data.records || []).slice(0, 15).forEach((r, idx) => {
+          summary += `${idx+1}. ${r.firm_name || 'N/A'} - ${r.recipient_email} (${r.sent_at.split('T')[0]})\n`;
+        });
+        if (data.sent_count > 15) {
+          summary += `...and ${data.sent_count - 15} more.\n`;
+        }
+        summary += `\nAll these firms are excluded from future searches to ensure you only discover fresh leads!`;
+        alert(summary);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
 }
+
 
 function renderDiscoveredFirms(leads) {
   const countBadge = document.getElementById("discoveredCount");
@@ -613,9 +641,10 @@ async function sendEmailViaSmtp(idx, btn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         recipient_email: em.recipient_email,
+        recipient_name: em.recipient_name,
+        firm_name: em.firm_name,
         subject: em.subject,
-        body: em.body,
-        recipient_name: em.recipient_name
+        body: em.body
       })
     });
 
@@ -623,9 +652,10 @@ async function sendEmailViaSmtp(idx, btn) {
     if (!resp.ok) {
       throw new Error(res.detail || "Failed to send email");
     }
-    btn.textContent = "✓ Sent!";
-    btn.style.background = "#1f6feb";
-    showToast(`Email dispatched to ${em.recipient_email}!`);
+    btn.textContent = "✓ Sent (Suppressed from next search)";
+    btn.style.background = "#238636";
+    showToast(`Email dispatched to ${em.recipient_email}! Added to suppression list.`);
+    updateSentSuppressionStats();
   } catch (err) {
     console.error("SMTP dispatch error:", err);
     alert("Email dispatch failed: " + err.message + "\n\nMake sure SMTP_USER and SMTP_PASSWORD are set in your .env file.");
@@ -633,6 +663,28 @@ async function sendEmailViaSmtp(idx, btn) {
     btn.textContent = originalText;
   }
 }
+
+async function updateSentSuppressionStats() {
+  try {
+    const resp = await fetch("/api/discovery/sent-emails");
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const counter = document.getElementById("sentCounter");
+    const badge = document.getElementById("contactedCountBadge");
+    if (counter) counter.textContent = data.sent_count || 0;
+    if (badge) {
+      if (data.sent_count > 0) {
+        badge.style.display = "inline-block";
+        badge.textContent = `${data.sent_count} contacted (suppressed)`;
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  } catch (e) {
+    console.error("Failed fetching sent stats:", e);
+  }
+}
+
 
 async function checkSmtpStatus() {
   try {

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quanteinstein | B2B Outbound Intelligence Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Bar Navigation -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-badge">QE</div>
+        <div class="brand-text">
+          <h1>QUANTEINSTEIN <span class="tag">B2B INTEL</span></h1>
+          <p class="subtitle">Quantitative Strategy Sandbox • Prospect Intent Scoring & Outreach Engine</p>
+        </div>
+      </div>
+      <div class="system-status">
+        <span class="status-pill active" id="providerStatus"><span class="pulse"></span> Engine: Heuristic NLP</span>
+        <span class="status-pill"><span class="dot"></span> Max Words: 45</span>
+        <span class="status-pill"><span class="dot"></span> Threshold: Score ≥ 8</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="singleTab">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        Lead Inspector & AI Scorer
+      </button>
+      <button class="tab-btn" data-tab="batchTab">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        Batch CSV Processor
+      </button>
+      <button class="tab-btn" data-tab="rulesTab">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Target Context & Rules
+      </button>
+    </nav>
+
+    <!-- TAB 1: Single Prospect Inspector -->
+    <main class="tab-content active" id="singleTab">
+      <div class="workspace-grid">
+        <!-- Input Column -->
+        <section class="card input-card">
+          <div class="card-header">
+            <h2>Prospect Scraped Data</h2>
+            <div class="preset-group">
+              <span class="preset-label">Quick Test Presets:</span>
+              <button class="btn-preset" data-preset="slippage">⚡ 10/10 Slippage Pain</button>
+              <button class="btn-preset" data-preset="hiring">⚡ 9/10 Hiring Trigger</button>
+              <button class="btn-preset" data-preset="tech">⚡ 8/10 Tech Stack</button>
+              <button class="btn-preset" data-preset="inactive">4-7 Inactive ICP</button>
+              <button class="btn-preset" data-preset="irrelevant">1-3 Irrelevant</button>
+            </div>
+          </div>
+
+          <form id="prospectForm">
+            <div class="meta-inputs">
+              <div class="form-group flex-1">
+                <label>Prospect Name</label>
+                <input type="text" id="pName" placeholder="e.g. Alex Thorne" value="Alex Thorne">
+              </div>
+              <div class="form-group flex-1">
+                <label>Company</label>
+                <input type="text" id="pCompany" placeholder="e.g. VectorQuant Capital" value="VectorQuant Capital">
+              </div>
+              <div class="form-group flex-1">
+                <label>Job Title</label>
+                <input type="text" id="pTitle" placeholder="e.g. Head of Quantitative Strategies" value="Head of Quantitative Strategies">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>1. Scraped Profile Bio / About <span class="required">*</span></label>
+              <textarea id="pBio" rows="3" placeholder="Paste LinkedIn summary, headline, or about section..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>2. Recent Posts & Comments <span class="required">*</span></label>
+              <textarea id="pPosts" rows="5" placeholder="Paste recent posts, shared articles, and public comments..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>3. Recent Company Job Listings <span class="required">*</span></label>
+              <textarea id="pJobs" rows="3" placeholder="Paste active job listings / openings from their company page..."></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+              <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                <span class="spinner" id="btnSpinner" style="display:none;"></span>
+                Run Intent Analysis & Generate Outreach
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Output Column -->
+        <section class="card output-card">
+          <div class="card-header">
+            <h2>Analysis & Outreach Output</h2>
+            <div class="output-actions">
+              <button class="btn-small" id="toggleRawJsonBtn">Toggle Strict JSON</button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">📊</div>
+            <h3>Awaiting Prospect Data</h3>
+            <p>Select a quick preset above or paste scraped LinkedIn data, then click <strong>Run Intent Analysis</strong>.</p>
+          </div>
+
+          <!-- Analysis Results View -->
+          <div class="results-view" id="resultsView" style="display:none;">
+            <!-- Score Meter -->
+            <div class="score-banner" id="scoreBanner">
+              <div class="score-display">
+                <span class="score-num" id="scoreNum">--</span>
+                <span class="score-denom">/ 10</span>
+              </div>
+              <div class="score-details">
+                <div class="intent-pill" id="intentTierPill">EVALUATING</div>
+                <div class="reasoning-text" id="reasoningText"></div>
+              </div>
+            </div>
+
+            <!-- Detected Signals -->
+            <div class="section-block">
+              <label class="section-title">BEHAVIORAL SIGNALS DETECTED</label>
+              <div class="triggers-container" id="triggersContainer">
+                <!-- Injected triggers -->
+              </div>
+            </div>
+
+            <!-- Drafted Connection Request -->
+            <div class="section-block" id="messageSection">
+              <div class="section-header-flex">
+                <label class="section-title">DRAFTED CONNECTION REQUEST</label>
+                <div class="word-counter" id="wordCounterBadge">
+                  <span id="wordCountNum">0</span> / 45 words
+                </div>
+              </div>
+
+              <div class="message-box" id="messageBox">
+                <p id="messageContent">No message generated for this score tier.</p>
+              </div>
+
+              <div class="message-footer" id="messageFooter">
+                <div class="constraints-checklist">
+                  <span class="check-item" id="chkTrigger">✓ Hook in 1st sentence</span>
+                  <span class="check-item" id="chkPeer">✓ Peer-to-peer exchange</span>
+                  <span class="check-item" id="chkAsk">✓ Low friction ask</span>
+                  <span class="check-item" id="chkWords">✓ ≤ 45 words</span>
+                </div>
+                <button class="btn btn-copy" id="copyBtn">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                  Copy Message
+                </button>
+              </div>
+            </div>
+
+            <!-- Raw JSON Output Block -->
+            <div class="raw-json-block" id="rawJsonBlock" style="display:none;">
+              <label class="section-title">STRICT JSON PAYLOAD (AS REQUESTED)</label>
+              <pre><code id="rawJsonCode"></code></pre>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 2: Batch CSV Processor -->
+    <main class="tab-content" id="batchTab" style="display:none;">
+      <section class="card batch-card">
+        <div class="card-header">
+          <h2>Batch Scraped Leads Processor</h2>
+          <div class="batch-actions">
+            <button class="btn btn-secondary" id="loadSampleBatchBtn">Load Sample Scraped Dataset (8 Leads)</button>
+            <label class="btn btn-primary file-upload-label">
+              <span>Upload Scraped CSV</span>
+              <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+            </label>
+            <button class="btn btn-success" id="exportQualifiedBtn">
+              Download Qualified Leads (Score ≥ 8)
+            </button>
+          </div>
+        </div>
+
+        <!-- Batch Metrics Bar -->
+        <div class="batch-metrics-bar">
+          <div class="metric-item">
+            <span class="metric-val" id="metricTotal">0</span>
+            <span class="metric-lbl">Total Processed</span>
+          </div>
+          <div class="metric-item highlight-green">
+            <span class="metric-val" id="metricHighIntent">0</span>
+            <span class="metric-lbl">High Intent (Score ≥ 8)</span>
+          </div>
+          <div class="metric-item highlight-yellow">
+            <span class="metric-val" id="metricPassed">0</span>
+            <span class="metric-lbl">Passed (Score < 8)</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-val" id="metricAvg">0.0</span>
+            <span class="metric-lbl">Average Score</span>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="table-filter-bar">
+          <input type="text" id="tableSearchInput" placeholder="Filter by name, company, or keyword...">
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All Leads</button>
+            <button class="filter-pill" data-filter="high">High Intent Only (≥8)</button>
+            <button class="filter-pill" data-filter="pass">Passes (<8)</button>
+          </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-container">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Score</th>
+                <th>Prospect & Title</th>
+                <th>Company</th>
+                <th>Trigger / Reasoning</th>
+                <th>Outreach Message (≤ 45 words)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="batchTableBody">
+              <tr>
+                <td colspan="6" class="text-center empty-table">No batch loaded yet. Click <strong>Load Sample Scraped Dataset</strong> or upload a CSV.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 3: Target Context & Rules -->
+    <main class="tab-content" id="rulesTab" style="display:none;">
+      <div class="rules-grid">
+        <section class="card">
+          <h2>Quanteinstein Value Proposition</h2>
+          <blockquote class="quote-box">
+            "Quanteinstein is a risk-guarded quantitative strategy incubation and paper-trading sandbox that bridges unstructured market intelligence into deterministic algorithmic execution. Through an integrated modular suite—featuring an AI Quant Coach, visual Strategy Builder, historical Backtester, live Charting, Trade Journal, and execution Analytics—it allows traders to formulate mathematical parameters, stress-test rules against historical friction, and forward-incubate strategies in a 100% paper-simulated environment before routing orders to live exchange pipes."
+          </blockquote>
+
+          <h2 style="margin-top: 1.5rem;">Target Audience & ICP</h2>
+          <p class="text-secondary">
+            Systematic retail traders, proprietary trading desks, emerging hedge funds, boutique quant firms, and portfolio management teams—including newly launched firms within their first 6 months—who want to build, backtest, and incubate automated trading strategies without the risk of emotional execution, code-heavy infrastructure overhead, or capital blowups.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Strict Intent Scoring Rules (1-10)</h2>
+          <div class="rule-tier tier-high">
+            <span class="tier-badge">Score 9 - 10</span>
+            <p>They explicitly mentioned a pain point we solve in a post/comment (slippage, execution friction, backtester divergence, emotional overrides), or their company is actively hiring to solve this exact problem right now.</p>
+          </div>
+          <div class="rule-tier tier-medium">
+            <span class="tier-badge">Score 8</span>
+            <p>They frequently post about our niche and use the specific tech stack our project requires (Python, pandas/numpy, VectorBT, Backtrader, CCXT, IBKR API, order books).</p>
+          </div>
+          <div class="rule-tier tier-pass">
+            <span class="tier-badge">Score 4 - 7</span>
+            <p>Right industry/title (Quant PM, Hedge Fund Trader), but no active signals or recent relevant activity. (PASS)</p>
+          </div>
+          <div class="rule-tier tier-irrelevant">
+            <span class="tier-badge">Score 1 - 3</span>
+            <p>Irrelevant domain (e.g. general marketing, real estate, generic web development). (PASS)</p>
+          </div>
+
+          <h2 style="margin-top: 1.5rem;">Connection Request Constraints</h2>
+          <ul class="checklist">
+            <li><strong>Rule 1:</strong> Max 45 words.</li>
+            <li><strong>Rule 2:</strong> First sentence MUST reference the exact trigger found.</li>
+            <li><strong>Rule 3:</strong> DO NOT pitch. Mention our project as peer-to-peer exchange.</li>
+            <li><strong>Rule 4:</strong> End with a soft, low-friction ask.</li>
+            <li><strong>Rule 5:</strong> Zero buzzwords. Tired, brilliant engineer tone.</li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toastNotification">Message copied to clipboard!</div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

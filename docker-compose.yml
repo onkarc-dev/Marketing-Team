@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  marketing-team:
+    build: .
+    container_name: quanteinstein-b2b-intel
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LLM_PROVIDER=heuristic
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+      - ./prospects.db:/app/prospects.db
+    restart: unless-stopped

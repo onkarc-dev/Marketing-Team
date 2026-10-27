@@ -296,24 +296,63 @@
 
             <div class="meta-inputs">
               <div class="form-group flex-1">
-                <label>Number of Firms to Find & Analyze</label>
-                <select id="targetCount" class="custom-select">
-                  <option value="3" selected>3 Target Firms</option>
-                  <option value="5">5 Target Firms</option>
-                  <option value="10">10 Target Firms</option>
+                <label>Batch Range (1 – 1,000 Target Pool) <span class="required">*</span></label>
+                <select id="batchRangeSelect" class="custom-select">
+                  <option value="1-50" selected>Batch 1: Desks 1 – 50</option>
+                  <option value="51-100">Batch 2: Desks 51 – 100</option>
+                  <option value="101-150">Batch 3: Desks 101 – 150</option>
+                  <option value="151-200">Batch 4: Desks 151 – 200</option>
+                  <option value="201-250">Batch 5: Desks 201 – 250</option>
+                  <option value="251-300">Batch 6: Desks 251 – 300</option>
+                  <option value="301-350">Batch 7: Desks 301 – 350</option>
+                  <option value="351-400">Batch 8: Desks 351 – 400</option>
+                  <option value="401-450">Batch 9: Desks 401 – 450</option>
+                  <option value="451-500">Batch 10: Desks 451 – 500</option>
+                  <option value="501-550">Batch 11: Desks 501 – 550</option>
+                  <option value="551-600">Batch 12: Desks 551 – 600</option>
+                  <option value="601-650">Batch 13: Desks 601 – 650</option>
+                  <option value="651-700">Batch 14: Desks 651 – 700</option>
+                  <option value="701-750">Batch 15: Desks 701 – 750</option>
+                  <option value="751-800">Batch 16: Desks 751 – 800</option>
+                  <option value="801-850">Batch 17: Desks 801 – 850</option>
+                  <option value="851-900">Batch 18: Desks 851 – 900</option>
+                  <option value="901-950">Batch 19: Desks 901 – 950</option>
+                  <option value="951-1000">Batch 20: Desks 951 – 1000</option>
                 </select>
               </div>
+              <div class="form-group flex-1">
+                <label>Firms Per Batch</label>
+                <select id="batchSizeSelect" class="custom-select">
+                  <option value="50" selected>50 Firms per Batch</option>
+                  <option value="25">25 Firms per Batch</option>
+                  <option value="10">10 Firms per Batch</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="meta-inputs">
               <div class="form-group flex-1">
                 <label>Sender Name (Email Signature)</label>
                 <input type="text" id="senderName" value="Onkar (Founder, Quanteinstein)">
               </div>
-
+              <div class="form-group flex-1" style="display:flex; align-items:flex-end;">
+                <div class="pool-status-banner">
+                  <span class="pool-icon">🎯</span>
+                  <span class="pool-text">Target Pool: <strong>1,000 Desks / Country</strong></span>
+                </div>
+              </div>
             </div>
 
-            <div class="form-actions">
+            <div class="batch-navigation-bar">
+              <button type="button" class="btn btn-secondary btn-small" id="prevBatchBtn">← Previous Batch</button>
+              <span id="currentBatchIndicator" class="badge-mini" style="font-size:0.75rem;">Viewing: Batch 1 (Desks 1 – 50)</span>
+              <button type="button" class="btn btn-secondary btn-small" id="nextBatchBtn">Next Batch →</button>
+            </div>
+
+            <div class="form-actions" style="margin-top: 0.75rem;">
               <button type="submit" class="btn btn-primary" id="runSearchBtn">
                 <span class="spinner" id="searchSpinner" style="display:none;"></span>
-                Search Web, Scrape Contacts & Generate Cold Emails
+                Search Web & Generate Cold Emails for Current Batch
               </button>
             </div>
           </form>
@@ -338,7 +377,7 @@
             <h2>Generated Tailored Cold Emails</h2>
             <div class="output-actions" style="display:flex; gap:8px;">
               <button class="btn btn-small" id="viewSentBtn" style="background:#21262d; border:1px solid #30363d; color:#8b949e;">Contacted Suppression List (<span id="sentCounter">0</span>)</button>
-              <button class="btn btn-small" id="exportEmailsBtn">Download All Emails (.csv)</button>
+              <button class="btn btn-small" id="exportEmailsBtn">Download Batch (.csv)</button>
             </div>
           </div>
 

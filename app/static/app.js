@@ -463,16 +463,64 @@ function initProspector() {
     });
   });
 
+  const rangeSelect = document.getElementById("batchRangeSelect");
+  const sizeSelect = document.getElementById("batchSizeSelect");
+  const batchIndicator = document.getElementById("currentBatchIndicator");
+  const prevBatchBtn = document.getElementById("prevBatchBtn");
+  const nextBatchBtn = document.getElementById("nextBatchBtn");
+
+  if (rangeSelect && batchIndicator) {
+    rangeSelect.addEventListener("change", () => {
+      batchIndicator.textContent = `Viewing: ${rangeSelect.options[rangeSelect.selectedIndex].text}`;
+    });
+  }
+
+  if (nextBatchBtn && rangeSelect) {
+    nextBatchBtn.addEventListener("click", () => {
+      if (rangeSelect.selectedIndex < rangeSelect.options.length - 1) {
+        rangeSelect.selectedIndex += 1;
+        if (batchIndicator) {
+          batchIndicator.textContent = `Viewing: ${rangeSelect.options[rangeSelect.selectedIndex].text}`;
+        }
+        form.requestSubmit();
+      } else {
+        alert("You have reached the maximum batch range (Firms 951 – 1,000) for this country.");
+      }
+    });
+  }
+
+  if (prevBatchBtn && rangeSelect) {
+    prevBatchBtn.addEventListener("click", () => {
+      if (rangeSelect.selectedIndex > 0) {
+        rangeSelect.selectedIndex -= 1;
+        if (batchIndicator) {
+          batchIndicator.textContent = `Viewing: ${rangeSelect.options[rangeSelect.selectedIndex].text}`;
+        }
+        form.requestSubmit();
+      } else {
+        alert("You are already on the first batch (Firms 1 – 50).");
+      }
+    });
+  }
+
   // Run full discovery campaign
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    const rangeVal = rangeSelect ? rangeSelect.value : "1-50";
+    const sizeVal = sizeSelect ? parseInt(sizeSelect.value, 10) : 50;
+    const parts = rangeVal.split("-");
+    const startNum = parseInt(parts[0], 10) || 1;
 
     const queryPayload = {
       niche: document.getElementById("targetNiche").value.trim(),
       region: document.getElementById("targetRegion").value.trim(),
       firm_type: document.getElementById("targetFirmType").value.trim(),
-      num_results: parseInt(document.getElementById("targetCount").value, 10),
-      sender_name: document.getElementById("senderName").value.trim() || "Technical Founder"
+      num_results: sizeVal,
+      offset: startNum - 1,
+      batch_range: rangeVal,
+      max_target_pool: 1000,
+      sender_name: document.getElementById("senderName").value.trim() || "Onkar (Founder, Quanteinstein)"
     };
 
     if (!queryPayload.niche || !queryPayload.region) {
@@ -494,9 +542,13 @@ function initProspector() {
       const data = await resp.json();
       currentCampaignData = data;
 
+      if (batchIndicator) {
+        batchIndicator.textContent = `Viewing: Batch ${rangeSelect ? rangeSelect.selectedIndex + 1 : 1} (${data.batch_range}) • ${data.total_discovered} Desks Loaded`;
+      }
+
       renderDiscoveredFirms(data.leads);
       renderGeneratedEmails(data.emails);
-      showToast(`Analyzed web and crafted ${data.emails.length} personalized cold emails!`);
+      showToast(`Analyzed web and crafted ${data.emails.length} personalized cold emails for batch ${rangeVal}!`);
     } catch (err) {
       console.error("Discovery failed:", err);
       alert("Web discovery failed: " + err.message);

@@ -116,7 +116,7 @@ class SystemStats(BaseModel):
 # =====================================================================
 
 class SearchQueryRequest(BaseModel):
-    """Search parameters entered by the user."""
+    """Search parameters entered by the user with batch pagination support up to 1,000 targets."""
     niche: str = Field(
         default="quantitative hedge fund",
         description="Target industry niche (e.g., quantitative hedge fund, prop trading desk, crypto market maker)"
@@ -129,7 +129,10 @@ class SearchQueryRequest(BaseModel):
         default="emerging hedge fund",
         description="Firm stage or type (e.g., emerging hedge fund, newly launched, boutique quant desk)"
     )
-    num_results: int = Field(default=5, ge=1, le=15, description="Number of firms to discover and research")
+    num_results: int = Field(default=50, ge=1, le=1000, description="Number of firms per batch (e.g. 10, 25, 50, 100)")
+    offset: int = Field(default=0, ge=0, le=1000, description="Pagination offset (e.g., 0 for 1-50, 50 for 51-100)")
+    batch_range: Optional[str] = Field(default=None, description="Batch range label (e.g. '1-50', '51-100', '101-150', up to '951-1000')")
+    max_target_pool: int = Field(default=1000, ge=1, le=5000, description="Total target pool capacity for country")
     sender_name: Optional[str] = Field(default="Technical Founder", description="Sender name for email signature")
 
 
@@ -172,6 +175,9 @@ class CampaignRunResponse(BaseModel):
     """Full response for automated discovery and cold email generation campaign."""
     query: SearchQueryRequest
     total_discovered: int
+    offset: int = 0
+    batch_range: str = "1-50"
+    total_pool_size: int = 1000
     leads: List[DiscoveredLead]
     emails: List[GeneratedEmail]
 

@@ -256,9 +256,14 @@ async def run_full_discovery_campaign(query: SearchQueryRequest):
         emails.append(em)
         active_campaign_emails.append(em)
 
+    batch_label = query.batch_range or f"{query.offset + 1}-{query.offset + len(leads)}"
+
     return CampaignRunResponse(
         query=query,
         total_discovered=len(leads),
+        offset=query.offset,
+        batch_range=batch_label,
+        total_pool_size=query.max_target_pool,
         leads=leads,
         emails=emails
     )

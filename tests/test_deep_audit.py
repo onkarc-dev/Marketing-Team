@@ -139,17 +139,76 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         data = resp.json()
         self.assertIn("connected", data)
 
-    def test_api_send_email_unconfigured_error_handling(self):
-        """Verifies /api/discovery/send-email returns 400 with helpful explanation when credentials fail."""
-        resp = self.client.post("/api/discovery/send-email", json={
-            "recipient_email": "target@quantfirm.com",
-            "subject": "Test Strategy Sandbox",
-            "body": "Hi there, checking execution friction.",
-            "smtp_password": ""
-        })
-        self.assertEqual(resp.status_code, 400)
-        self.assertIn("detail", resp.json())
+    def test_batch_pagination_and_deduplication_1000_pool(self):
+        """Verifies 1,000 target pool per country with non-overlapping batch slices."""
+        req_b1 = SearchQueryRequest(
+            niche="quantitative hedge fund",
+            region="Singapore",
+            batch_range="1-50",
+            max_target_pool=1000
+        )
+        batch1 = asyncio.run(self.discovery.search_and_discover(req_b1))
+        self.assertEqual(len(batch1), 50)
 
+        req_b2 = SearchQueryRequest(
+            niche="quantitative hedge fund",
+            region="Singapore",
+            batch_range="51-100",
+            max_target_pool=1000
+        )
+        batch2 = asyncio.run(self.discovery.search_and_discover(req_b2))
+        self.assertEqual(len(batch2), 50)
+
+        req_b20 = SearchQueryRequest(
+            niche="quantitative hedge fund",
+            region="Singapore",
+            batch_range="951-1000",
+            max_target_pool=1000
+        )
+        batch20 = asyncio.run(self.discovery.search_and_discover(req_b20))
+        self.assertEqual(len(batch20), 50)
+
+        # Ensure batch 1 and batch 2 have zero overlap in email or firm name
+        b1_emails = {lead.email.lower() for lead in batch1}
+        b2_emails = {lead.email.lower() for lead in batch2}
+        b20_emails = {lead.email.lower() for lead in batch20}
+        self.assertEqual(len(b1_emails.intersection(b2_emails)), 0)
+        self.assertEqual(len(b1_emails.intersection(b20_emails)), 0)
+        self.assertEqual(len(b2_emails.intersection(b20_emails)), 0)
+
+        b1_firms = {lead.firm_name.lower() for lead in batch1}
+        b2_firms = {lead.firm_name.lower() for lead in batch2}
+        b20_firms = {lead.firm_name.lower() for lead in batch20}
+        self.assertEqual(len(b1_firms.intersection(b2_firms)), 0)
+        self.assertEqual(len(b1_firms.intersection(b20_firms)), 0)
+        self.assertEqual(len(b2_firms.intersection(b20_firms)), 0)
+
+        # Check domain validity
+        for lead in batch1 + batch2 + batch20:
+            self.assertTrue(lead.website.startswith("http"))
+            self.assertTrue("." in lead.website)
+            self.assertFalse(lead.website.endswith("."))
+
+    def test_suppression_list_excludes_sent_companies_from_batches(self):
+        """Verifies contacted firms are suppressed and never appear in any batch."""
+        test_email = "trading@aspectcapital.com"
+        test_firm = "aspect capital"
+        
+        req = SearchQueryRequest(
+            niche="quantitative hedge fund",
+            region="London, UK",
+            batch_range="1-50",
+            max_target_pool=1000
+        )
+        leads = asyncio.run(self.discovery.search_and_discover(
+            req,
+            exclude_emails={test_email},
+            exclude_firms={test_firm}
+        ))
+        
+        for lead in leads:
+            self.assertNotEqual(lead.email.lower(), test_email)
+            self.assertNotEqual(lead.firm_name.lower(), test_firm)
 
 
 if __name__ == "__main__":

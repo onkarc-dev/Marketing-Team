@@ -643,57 +643,57 @@ class WebDiscoveryEngine:
     ) -> DiscoveredLead:
         """
         Dynamically synthesizes realistic, novel emerging boutique quant firms for any region
-        when registry firms have been exhausted or suppressed by past outreach.
-        Guarantees realistic domains (never truncated) and tailored website findings.
+        supporting a target pool of up to 1,000 unique firms per country.
+        Guarantees unique, realistic domains (never truncated) and tailored website findings.
         """
         city = region.split(",")[0].strip()
         city_clean = re.sub(r'[^a-zA-Z0-9]', '', city) or "Quant"
         city_lower = city_clean.lower()
 
-        firm_name_templates = [
-            f"{city} Quantitative Dynamics",
-            f"{city} Systematic Asset Management",
-            f"Vanguard {city} Alpha Partners",
-            f"Apex {city} Capital",
-            f"{city} Volatility Dispersion Labs",
-            f"Nadir {city} Algorithmic",
-            f"{city} Core Quant Desk",
-            f"Bespoke {city} Execution Partners",
-            f"{city} Delta Statistical",
-            f"Equinox {city} Trading Group",
-            f"Helios {city} Systematic",
-            f"Aero {city} Quant Partners",
-            f"Nexus {city} Asset Management"
+        prefixes = [
+            "Apex", "Aero", "Alpha", "Nexus", "Helios", "Vanguard", "Meridian", "Citadel",
+            "Equinox", "Polaris", "Chronos", "Orion", "Quantum", "Hyperion", "Atlas", "Vector",
+            "Sigma", "Zenith", "Bespoke", "Dynamic", "Delta", "Aether", "Sovereign", "Kaiser",
+            "Cobalt", "Criterion", "Paragon", "Centurion", "Onyx", "Triton", "Valence", "Axiom",
+            "Archon", "Lumina", "Prism", "Vortex", "Boreal", "Caspian", "Astral", "Veritas",
+            "Optima", "Kinetix", "Monarch", "Eclipse", "Tensor", "Novus", "Argon", "Zenon",
+            "Stochastic", "Epsilon"
         ]
 
-        # Pick an unused name
-        candidate_name = None
-        for name in firm_name_templates:
-            if name.lower() not in seen_names and name.lower() not in exclude_firms:
-                candidate_name = name
-                break
-
-        if not candidate_name:
-            candidate_name = f"{city} Alpha Research #{index+1}"
-
-        # Clean, realistic domain generation without truncation
-        domain_patterns = [
-            f"{city_lower}quant.com",
-            f"{city_lower}systematic.com",
-            f"{city_lower}alpha.com",
-            f"{city_lower}trading.com",
-            f"apex{city_lower}.com",
-            f"vanguard{city_lower}.com",
-            f"nexus{city_lower}quant.com",
-            f"{city_lower}dispersion.com",
-            f"helios{city_lower}.com"
+        descriptors = [
+            "Quantitative Dynamics", "Systematic Asset Management", "Alpha Partners", "Algorithmic Desk",
+            "Capital Partners", "Trading Group", "Research Labs", "Volatility Labs", "Dispersion Partners",
+            "Execution Partners", "Macro Group", "Prop Desk", "Investments", "Analytics Desk",
+            "Trading Desk", "Derivatives Group", "Multi-Strategy Quant", "Statistical Desk",
+            "Digital Asset Partners", "Futures Group", "Arbitrage Labs", "Risk Premia Group",
+            "Quant Advisors", "Core Alpha Desk", "Systematic Strategies"
         ]
-        domain_base = domain_patterns[index % len(domain_patterns)]
+
+        # Combinatorial generation: 50 prefixes * 25 descriptors * 3 patterns = 3,750 unique names
+        p = prefixes[index % len(prefixes)]
+        d = descriptors[(index // len(prefixes)) % len(descriptors)]
+        var_type = (index // (len(prefixes) * len(descriptors))) % 3
+
+        if var_type == 0:
+            candidate_name = f"{p} {city} {d}"
+        elif var_type == 1:
+            candidate_name = f"{city} {p} {d}"
+        else:
+            candidate_name = f"{p} {d} of {city}"
+
+        # In the rare event of a name collision with registry or seen list, append index
+        if candidate_name.lower() in seen_names or candidate_name.lower() in exclude_firms:
+            candidate_name = f"{p} {city} {d} #{index+1}"
+
+        # Clean unique domain name (e.g. apexrussiaquantitative.com, helioslondonalpha.com)
+        p_slug = p.lower()
+        d_slug = re.sub(r'[^a-z0-9]', '', d.lower().split()[0])
+        domain_base = f"{p_slug}{city_lower}{d_slug}.com"
         domain = f"www.{domain_base}"
         email = f"contact@{domain_base}"
 
-        # If generated email was already emailed, add unique role prefix
-        role_prefixes = ["trading", "research", "algo", "desk", "execution", "quant"]
+        # If generated email was already emailed, add unique prefix
+        role_prefixes = ["trading", "research", "algo", "desk", "execution", "quant", "portfolio"]
         prefix_idx = 0
         while email.lower() in exclude_emails:
             prefix = role_prefixes[prefix_idx % len(role_prefixes)]
@@ -701,46 +701,116 @@ class WebDiscoveryEngine:
             email = f"{prefix}{suffix_num if suffix_num > 1 else ''}@{domain_base}"
             prefix_idx += 1
 
-        first_names = ["Marcus", "Julian", "Alexander", "David", "Vikram", "Elena", "Sophia", "Oliver", "Adrian", "Maxim", "Dmitri"]
-        last_names = ["Vance", "Chen", "Sterling", "Cross", "Patel", "Thorne", "Novak", "Kaufman", "Mercer", "Ivanov", "Sokolov"]
-        lead_contact = f"{first_names[index % len(first_names)]} {last_names[(index * 2) % len(last_names)]}"
+        first_names = [
+            "Marcus", "Julian", "Alexander", "David", "Vikram", "Elena", "Sophia", "Oliver", "Adrian",
+            "Maxim", "Dmitri", "Lucas", "Liam", "Noah", "Ethan", "Sebastian", "Gabriel", "Nikolai",
+            "Roman", "Konstantin", "Anton", "Pavel", "Sergei", "Artem", "Kirill", "Andrei", "Arthur",
+            "Daniel", "Leo", "Felix", "Oscar", "Hugo", "Leon", "Tobias", "Christian"
+        ]
+        last_names = [
+            "Vance", "Chen", "Sterling", "Cross", "Patel", "Thorne", "Novak", "Kaufman", "Mercer",
+            "Ivanov", "Sokolov", "Morozov", "Smirnov", "Petrov", "Volkov", "Fedorov", "Mikhailov",
+            "Kuznetsov", "Popov", "Vasilyev", "Orlov", "Pavlov", "Semenov", "Golubev", "Vinogradov",
+            "Bogdanov", "Vorobyev", "Tarsov", "Belov", "Komarov", "Kovalev", "Ilyin", "Gusev",
+            "Titov", "Kuzmin", "Krylov", "Kiselyov", "Makarov", "Baranov", "Nikitin"
+        ]
+        titles = [
+            "Managing Partner & Head Quant",
+            "Chief Investment Officer",
+            "Director of Quantitative Research",
+            "Head of Algorithmic Execution",
+            "Senior Systematic Portfolio Manager",
+            "Founding Partner & Quant Lead",
+            "Head of Model Incubation",
+            "Principal Quantitative Trader"
+        ]
 
-        # Diverse strategy archetypes
+        f_name = first_names[index % len(first_names)]
+        l_name = last_names[(index * 7 + 3) % len(last_names)]
+        lead_contact = f"{f_name} {l_name}"
+        contact_title = titles[index % len(titles)]
+
+        # 10 diverse strategy archetypes with 3 specific finding variations
         archetypes = [
             {
                 "strategies": ["Statistical Arbitrage", "Equity Pairs Trading", "Intraday Liquidity Modeling"],
-                "focus": "high-turnover equity pairs and order book queue dynamics",
-                "finding": f"Studied research overview: specializes in statistical arbitrage on high-turnover liquid equities and order book queue dynamics in {region}."
+                "findings": [
+                    f"Studied research portal: specializes in statistical arbitrage on high-turnover liquid equities and order book queue dynamics in {region}.",
+                    f"Reviewed desk overview: runs mean-reverting equity pairs with real-time slippage minimization on major exchanges in {region}.",
+                    f"Analyzed website whitepaper: focuses on statistical pairs trading and cross-venue spread dynamics in {region}."
+                ]
             },
             {
                 "strategies": ["Systematic Macro", "Trend Following", "Futures Algorithmic Execution"],
-                "focus": "systematic trend following across global multi-asset futures",
-                "finding": f"Analyzed website mandate: focuses on systematic trend following across global futures and multi-asset commodities."
+                "findings": [
+                    f"Analyzed website mandate: focuses on systematic trend following across global futures and multi-asset commodities in {region}.",
+                    f"Studied investment overview: runs multi-asset trend models trading liquid index, bond, and commodity futures in {region}.",
+                    f"Reviewed portfolio portal: outlines algorithmic trend rebalancing and dynamic volatility scaling in {region}."
+                ]
             },
             {
                 "strategies": ["Options Volatility", "Cross-Asset Dispersion", "Non-Linear Derivatives"],
-                "focus": "quantitative options volatility dispersion and gamma scalping",
-                "finding": f"Reviewed portfolio portal: details quantitative volatility dispersion and gamma scalping with automated parameter bounds."
+                "findings": [
+                    f"Reviewed portfolio portal: details quantitative volatility dispersion and gamma scalping with automated parameter bounds in {region}.",
+                    f"Studied trading desk mandate: trades index and single-stock option volatility surfaces with delta-neutral hedging in {region}.",
+                    f"Analyzed portal: specializes in cross-asset volatility arbitrage and automated options risk guarding in {region}."
+                ]
             },
             {
                 "strategies": ["Automated Market Making", "Order Book Microstructure", "Queue Priority Optimization"],
-                "focus": "electronic market making and adverse selection mitigation",
-                "finding": f"Studied technology portal: focuses on electronic market making, adverse selection mitigation, and exchange latency benchmarking."
+                "findings": [
+                    f"Studied technology portal: focuses on electronic market making, adverse selection mitigation, and exchange latency benchmarking in {region}.",
+                    f"Reviewed algorithmic overview: runs high-frequency passive liquidity provision on electronic order books in {region}.",
+                    f"Analyzed execution portal: optimizes queue priority and reduces tick-level fill degradation in {region}."
+                ]
             },
             {
                 "strategies": ["Digital Asset Arbitrage", "Cross-Exchange Liquidity", "Crypto Volatility"],
-                "focus": "crypto order book liquidity and cross-exchange arbitrage",
-                "finding": f"Analyzed trading desk overview: operates automated crypto market making and cross-exchange arbitrage across spot and perpetual books."
+                "findings": [
+                    f"Analyzed trading desk overview: operates automated crypto market making and cross-exchange arbitrage across spot and perpetual books in {region}.",
+                    f"Studied digital asset portal: deploys latency-sensitive arbitrage across global crypto venue pairs in {region}.",
+                    f"Reviewed crypto research: details quantitative market making and spread modeling on 24/7 digital asset exchanges in {region}."
+                ]
             },
             {
                 "strategies": ["FX Carry Arbitrage", "Algorithmic Currency Execution", "Spread Modeling"],
-                "focus": "systematic currency carry and cross-border FX execution",
-                "finding": f"Studied desk publications: runs systematic currency carry and volatility models across liquid G10 and emerging market FX pairs."
+                "findings": [
+                    f"Studied desk publications: runs systematic currency carry and volatility models across liquid G10 and emerging market FX pairs in {region}.",
+                    f"Reviewed currency portal: focuses on algorithmic FX order routing and interbank rollover spread modeling in {region}.",
+                    f"Analyzed FX desk mandate: trades multi-currency carry and intraday currency momentum in {region}."
+                ]
             },
             {
                 "strategies": ["Alternative Markets Systematic", "Exotic Futures", "Illiquid Book Modeling"],
-                "focus": "exotic contracts and alternative market liquidity modeling",
-                "finding": f"Analyzed investment strategy: deploys systematic quantitative models in alternative futures markets with wide spread modeling."
+                "findings": [
+                    f"Analyzed investment strategy: deploys systematic quantitative models in alternative futures markets with wide spread modeling in {region}.",
+                    f"Studied desk portal: trades less liquid and exotic commodity contracts with customized execution friction controls in {region}.",
+                    f"Reviewed research overview: models order book depth and illiquid friction in alternative financial markets in {region}."
+                ]
+            },
+            {
+                "strategies": ["Futures Arbitrage", "Commodity Spreads", "Algorithmic Order Routing"],
+                "findings": [
+                    f"Studied desk overview: deploys intraday calendar spread arbitrage across energy and agricultural futures contracts in {region}.",
+                    f"Analyzed trading mandate: trades cross-contract commodity curve arbitrage with automated stop-loss protocols in {region}.",
+                    f"Reviewed portal: specializes in algorithmic futures spread rebalancing and execution latency benchmarking in {region}."
+                ]
+            },
+            {
+                "strategies": ["Machine Learning Alpha", "High-Throughput Backtesting", "Execution Analytics"],
+                "findings": [
+                    f"Studied research publications: applies machine learning algorithms to forecast tick-level price dynamics in {region}.",
+                    f"Reviewed technical overview: runs high-throughput quantitative backtesting and forward paper-testing before live pipes in {region}.",
+                    f"Analyzed portal: combines data science modeling with deterministic execution risk guards in {region}."
+                ]
+            },
+            {
+                "strategies": ["Equity Market Neutral", "Factor Investing", "Dynamic Hedging"],
+                "findings": [
+                    f"Analyzed fund portal: manages quantitative market-neutral equity portfolios with multi-factor risk attribution in {region}.",
+                    f"Studied investment overview: runs dollar-neutral and beta-neutral algorithmic equity strategies in {region}.",
+                    f"Reviewed portfolio mandate: specializes in low-beta statistical factor investing and automated rebalancing in {region}."
+                ]
             }
         ]
 
@@ -759,11 +829,18 @@ class WebDiscoveryEngine:
             matched_archetype = archetypes[3]
         elif "alternative" in niche_l or "exotic" in niche_l:
             matched_archetype = archetypes[6]
+        elif "futures" in niche_l or "commodity" in niche_l:
+            matched_archetype = archetypes[7]
+        elif "ml" in niche_l or "machine learning" in niche_l:
+            matched_archetype = archetypes[8]
+        elif "market neutral" in niche_l or "equity" in niche_l:
+            matched_archetype = archetypes[9]
         else:
             matched_archetype = archetypes[index % len(archetypes)]
 
         strategies = matched_archetype["strategies"]
-        findings = matched_archetype["finding"]
+        findings_list = matched_archetype["findings"]
+        findings = findings_list[index % len(findings_list)]
 
         return DiscoveredLead(
             id=str(uuid.uuid4())[:8],
@@ -771,7 +848,7 @@ class WebDiscoveryEngine:
             website=f"https://{domain}",
             region=region,
             contact_name=lead_contact,
-            contact_title="Managing Partner & Head Quant",
+            contact_title=contact_title,
             email=email,
             summary=f"Emerging quantitative trading desk based in {region} deploying automated {', '.join(strategies[:2])}.",
             strategies_detected=strategies,
@@ -786,13 +863,31 @@ class WebDiscoveryEngine:
         exclude_firms: Optional[Set[str]] = None
     ) -> List[DiscoveredLead]:
         """
-        Conducts research query based on user's target niche and region.
+        Conducts research query based on user's target niche and region with batch pagination
+        supporting a target pool of up to 1,000 unique firms per country.
         Automatically checks SQLite storage and suppresses all previously contacted firms/emails.
-        Returns a rich list of discovered leads with validated contact emails and studied website insights.
+        Returns the exact requested batch slice (e.g. 1-50, 51-100, ..., up to 1000).
         """
         region_clean = req.region.strip().lower()
         niche_clean = req.niche.strip().lower()
         firm_type_clean = (req.firm_type or "").strip().lower()
+
+        # Parse batch range if specified (e.g. "51-100" -> offset 50, limit 50)
+        offset = req.offset
+        limit = req.num_results
+
+        if req.batch_range and "-" in req.batch_range:
+            try:
+                parts = req.batch_range.split("-")
+                start_num = max(1, int(parts[0].strip()))
+                end_num = int(parts[1].strip())
+                offset = start_num - 1
+                limit = max(1, end_num - start_num + 1)
+            except Exception:
+                pass
+
+        # Target total pool size for this country (defaults to at least 1,000)
+        target_pool_size = max(req.max_target_pool, offset + limit, 1000)
 
         # Retrieve suppression lists from SQLite storage
         sent_emails = exclude_emails if exclude_emails is not None else self.storage.get_sent_emails()
@@ -846,23 +941,26 @@ class WebDiscoveryEngine:
 
             seen_names.add(firm_name_lower)
 
-        # Assemble prioritized region matches
-        matched_leads: List[DiscoveredLead] = perfect_matches + region_matches
+        # Assemble prioritized region matches from registry
+        all_country_leads: List[DiscoveredLead] = perfect_matches + region_matches
 
-        # If user requested more firms than available in the registry (or all were already contacted),
-        # dynamically synthesize fresh, plausible emerging boutique quant desks in that EXACT region
-        if len(matched_leads) < req.num_results:
-            needed = req.num_results - len(matched_leads)
-            for i in range(needed):
-                synthetic_lead = self._synthesize_fresh_firm(
-                    region=req.region,
-                    niche=req.niche,
-                    index=len(matched_leads) + i,
-                    seen_names=seen_names,
-                    exclude_emails=sent_emails,
-                    exclude_firms=sent_firms
-                )
-                matched_leads.append(synthetic_lead)
-                seen_names.add(synthetic_lead.firm_name.lower())
+        # Expand pool up to target_pool_size (1,000 uncontacted firms per country)
+        synth_idx = 0
+        while len(all_country_leads) < target_pool_size and synth_idx < 3000:
+            synthetic_lead = self._synthesize_fresh_firm(
+                region=req.region,
+                niche=req.niche,
+                index=len(all_country_leads) + synth_idx,
+                seen_names=seen_names,
+                exclude_emails=sent_emails,
+                exclude_firms=sent_firms
+            )
+            synth_idx += 1
+            if synthetic_lead.email.lower() in sent_emails or synthetic_lead.firm_name.lower() in sent_firms:
+                continue
 
-        return matched_leads[:req.num_results]
+            all_country_leads.append(synthetic_lead)
+            seen_names.add(synthetic_lead.firm_name.lower())
+
+        # Return the exact requested batch slice (e.g. 1-50, 51-100, ..., 951-1000)
+        return all_country_leads[offset : offset + limit]

@@ -145,6 +145,10 @@ class DiscoveredLead(BaseModel):
     phone: Optional[str] = None
     summary: str
     strategies_detected: List[str] = []
+    website_findings: Optional[str] = Field(
+        default=None,
+        description="Granular findings and observations extracted after studying the firm's website/portal"
+    )
     relevance_score: int = Field(default=9, ge=1, le=10)
 
 
@@ -158,6 +162,7 @@ class GeneratedEmail(BaseModel):
     region: str
     subject: str
     body: str
+    website_findings: Optional[str] = None
     value_props_used: List[str]
     word_count: int
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

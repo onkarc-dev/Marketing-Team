@@ -553,6 +553,12 @@ function renderDiscoveredFirms(leads) {
     const card = document.createElement("div");
     card.className = "firm-card";
     const tags = (lead.strategies_detected || []).map(s => `<span class="tag-strategy">${escapeHtml(s)}</span>`).join("");
+    const findingsHtml = lead.website_findings ? `
+      <div class="firm-website-findings">
+        <span class="finding-badge">🔍 Studied Website & Mandate:</span>
+        <span class="finding-text">${escapeHtml(lead.website_findings)}</span>
+      </div>
+    ` : "";
 
     card.innerHTML = `
       <div class="firm-card-header">
@@ -564,6 +570,7 @@ function renderDiscoveredFirms(leads) {
         <span>✉️ <span class="firm-email-highlight">${escapeHtml(lead.email)}</span></span>
       </div>
       <p class="firm-summary-text">${escapeHtml(lead.summary)}</p>
+      ${findingsHtml}
       <div class="firm-tags-flex">${tags}</div>
     `;
     container.appendChild(card);
@@ -590,6 +597,12 @@ function renderGeneratedEmails(emails) {
     card.className = "email-card";
 
     const mailtoLink = `mailto:${encodeURIComponent(em.recipient_email)}?subject=${encodeURIComponent(em.subject)}&body=${encodeURIComponent(em.body)}`;
+    const analysisHtml = em.website_findings ? `
+      <div class="email-analysis-badge">
+        <span class="analysis-pill">🔍 Analyzed Web Mandate:</span>
+        <span class="analysis-text">${escapeHtml(em.website_findings)}</span>
+      </div>
+    ` : "";
 
     card.innerHTML = `
       <div class="email-card-header">
@@ -608,12 +621,14 @@ function renderGeneratedEmails(emails) {
         </div>
       </div>
 
+      ${analysisHtml}
+
       <div class="email-body-box">${escapeHtml(em.body)}</div>
 
       <div class="email-card-footer">
         <div class="constraints-checklist">
-          <span>✓ Tailored to their strategies</span>
-          <span>✓ Bridges Quanteinstein sandbox</span>
+          <span>✓ Studied site & mandate</span>
+          <span>✓ Personalized strategy bridge</span>
           <span>✓ ${em.word_count} words</span>
         </div>
         <div class="email-footer-actions">

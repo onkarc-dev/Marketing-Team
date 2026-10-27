@@ -921,3 +921,53 @@ input[type="text"]:focus, textarea:focus {
   gap: 0.5rem;
 }
 
+/* Studied Website & Mandate Insights */
+.firm-website-findings {
+  background: rgba(56, 139, 253, 0.08);
+  border-left: 3px solid var(--color-cyan);
+  border-radius: 4px;
+  padding: 0.45rem 0.65rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.finding-badge {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-cyan);
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.finding-text {
+  color: #c9d1d9;
+}
+
+.email-analysis-badge {
+  background: rgba(35, 134, 54, 0.12);
+  border: 1px solid rgba(46, 160, 67, 0.35);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analysis-pill {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-green);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.analysis-text {
+  color: #8b949e;
+  line-height: 1.35;
+}
+

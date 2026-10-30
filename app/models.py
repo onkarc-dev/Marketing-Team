@@ -176,8 +176,16 @@ class DiscoveredLead(BaseModel):
     relevance_score: int = Field(default=10, ge=1, le=10)
 
 
+class FollowUpEmail(BaseModel):
+    """Follow-up email spaced a few days apart from initial outreach."""
+    step: str = Field(description="Sequence step (e.g. 'Follow-up 1 (Day +3)', 'Follow-up 2 (Day +7)', 'Follow-up 3 (Day +14 Breakup)')")
+    delay_days: int
+    subject: str
+    body: str
+
+
 class GeneratedEmail(BaseModel):
-    """Hyper-personalized cold email crafted for a discovered firm."""
+    """Hyper-personalized, founder-led cold email adhering to 60-second 3-sentence + isolated ask format."""
     lead_id: str
     recipient_email: str
     recipient_name: str
@@ -186,8 +194,10 @@ class GeneratedEmail(BaseModel):
     region: str
     subject: str
     body: str
+    the_ask: Optional[str] = Field(default=None, description="Explicit ask placed on its own separate line (never asks for a meeting directly)")
+    follow_ups: List[FollowUpEmail] = Field(default_factory=list, description="2-4 follow-up variations spaced a few days apart")
     website_findings: Optional[str] = None
-    value_props_used: List[str]
+    value_props_used: List[str] = []
     word_count: int
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

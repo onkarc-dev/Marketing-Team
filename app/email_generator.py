@@ -1,8 +1,12 @@
 """
-Hyper-Personalized Cold Email Generator for Quanteinstein B2B Outreach.
-Analyzes discovered firm profile, studied website/portal findings, and
-crafts authentic, high-converting, human-sounding cold emails with varied subject lines.
-Zero robotic bullet points, zero spam buzzwords, 100% grounded in institutional quant realities.
+Hyper-Personalized, Founder-Led Cold Email Generator for Quanteinstein B2B Outreach.
+Strictly adheres to founder-led cold email principles:
+- Read in 60 seconds or less
+- Exactly 3 sentences in the main body (what you do, why it is exciting, what you want)
+- Casual, short subject line resembling a message from a friend
+- Explicit ask on its own separate line (never asking for a meeting directly)
+- Zero jargon, zero flattery, direct peer-to-peer tone
+- Generates 2-3 follow-up variations spaced a few days apart with polite, non-confrontational breakup tone
 """
 
 import re
@@ -10,12 +14,43 @@ import hashlib
 import logging
 from typing import List, Dict, Any, Optional
 from app.config import settings
-from app.models import DiscoveredLead, GeneratedEmail
+from app.models import DiscoveredLead, GeneratedEmail, FollowUpEmail
 from app.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
-EMAIL_PROMPT_TEMPLATE = """You are Onkar, technical founder of Quanteinstein (https://quanteinstein.com), writing a highly tailored 1-on-1 cold email to a Mid-Market Quantitative Firm.
+EMAIL_PROMPT_TEMPLATE = """System Prompt: Cold Email Generation Agent
+You are an expert cold email writing assistant. Your objective is to draft highly effective, founder-led cold emails. You must strictly adhere to the following guidelines for every email you generate:
+
+Format & Structure
+- Keep the email short enough to be read in 60 seconds or less.
+- Limit the body to exactly three sentences covering: what you do, why it is exciting, and what you want.
+- Give every email a single goal and cut any words that do not serve that specific goal.
+- Place the explicit ask on its own separate line right before you sign off.
+
+Tone & Voice
+- Write like you are talking to a friend; the text should sound natural when read out loud.
+- Keep the subject line casual, short, and relevant, resembling a message from a friend.
+- Skip all compliments and flattery; get directly to the point.
+- Explain what you do right away using plain words and absolutely zero jargon.
+
+Content & Strategy
+- Make the email about the recipient and frame their problem using their own words.
+- Find and mention an uncommon commonality to prove there is a real reason you are contacting them.
+- Lead with your best proof, such as metrics on a launch, growth, market size, or the technical team.
+- Borrow credibility by naturally incorporating notable affiliations, past employers, or customer names (e.g., YC).
+- Skip all backstory, origin stories, and resume details.
+
+The Ask
+- Make the ask highly explicit (e.g., asking for advice, feedback, or permission to share benchmark data).
+- Never ask for a meeting directly; leave room for the recipient to escalate the interaction.
+
+Operational Directives (For the Agent's Context)
+- Ensure the drafted email is intended to be sent from a company email address that includes the sender's name (Onkar, Founder of Quanteinstein).
+- Draft content meant for a highly targeted audience, as 100 good-fit emails beat 1,000 random ones.
+- Make the output read as though it was hand-written by a founder, avoiding any corporate or automated feel.
+- Be prepared to generate 2-4 follow-up variations spaced a few days apart.
+- Maintain a polite, non-confrontational tone in all follow-ups, acknowledging that it is okay if they ignore it and that you will check back in a few months.
 
 ### TARGET PROSPECT INTELLIGENCE
 Firm Name: {firm_name}
@@ -29,52 +64,39 @@ Firm Segment: {firm_segment} ({headcount}, {aum})
 Target Buyer: {target_decision_maker}
 Core Pain Point: {core_pain_point}
 
-### COMMERCIAL POSITIONING: MID-MARKET (NOT ENTERPRISE GIANTS)
-We do NOT target Citadel, Jane Street, or HRT (they build everything internally). We target the Mid-Market:
-1. The Sweet Spot: Proprietary Trading Firms & Small Family Offices (2-15 people, $10M-$50M AUM).
-   - Buyer: Founder or Lead Portfolio Manager (no CISO bureaucracy).
-   - Value Prop: They have brilliant quant researchers but lack dedicated C++ infrastructure engineers. An in-house team costs $500,000/yr to build and maintain low-latency FIX execution and single-tenant sandboxes. Quanteinstein ($80k/yr) delivers turnkey C++ FIX execution and single-tenant incubation out of the box -- saving $420k/yr.
-2. The Stepping Stone: Emerging Quantitative Funds (15-40 people, $50M-$250M AUM).
-   - Buyer: Head of Quantitative Trading or CTO.
-   - Value Prop: Scaling past patched-together Python infrastructure; hitting latency limits and needing turnkey SEC Rule 15c3-5 pre-trade risk controls to pass prime broker and regulatory audits.
-
-### STRICT COPYWRITING RULES
-1. Salutation:
-   - If contact is an individual (e.g. Marcus Kane, Jonathan Ross, Doug Greenig), use "Hi Firstname,".
-   - If contact is a desk/team (e.g. Systematic Research Team), use "Hi {firm_name} Trading Desk," or "Hi {firm_name} Team,". Never say "Hi Systematic,".
-2. Subject Line:
-   - 4-8 words. Natural, direct, commercial.
-   - Examples for Sweet Spot:
-     * "C++ FIX execution for {firm_name} (without the $500k infra overhead)"
-     * "low-latency FIX execution at {firm_name}"
-     * "single-tenant C++ FIX engine for {firm_name}"
-     * "question on {firm_name}'s C++ execution pipes"
-   - Examples for Stepping Stone:
-     * "{firm_name} • SEC Rule 15c3-5 risk controls & FIX latency"
-     * "scaling {firm_name}'s execution: C++ FIX & SEC 15c3-5 compliance"
-     * "low-latency C++ FIX engine for {firm_name}"
-3. Tone & Structure:
-   - Natural email from Onkar (Founder, Quanteinstein) who visited their site and studied their work.
-   - Paragraph 1: Mention finding them and studying their site regarding their specific strategies and market focus.
-   - Paragraph 2: Point out their exact commercial pain point (saving $500k/yr on C++ infra or outgrowing Python and needing SEC 15c3-5 risk controls).
-   - Paragraph 3: Introduce Quanteinstein (https://quanteinstein.com) as the turnkey C++ FIX execution engine and single-tenant incubation sandbox that solves this for $80k/yr.
-   - Paragraph 4: Low-friction CTA (e.g. "Curious how your team currently handles low-latency FIX execution without maintaining a costly internal infra team. Open to a 10-minute technical exchange this week?").
-   - Sign-off: "Best regards,\nOnkar (Founder, Quanteinstein)\nhttps://quanteinstein.com"
-4. ZERO BULLET POINTS: Write natural conversational prose paragraphs only.
-5. KEEP WORD COUNT CRISP: Exactly 95-135 words.
-
 ### OUTPUT FORMAT
 Output valid JSON only:
 {{
-  "subject": "[Sharp Subject Line]",
-  "body": "[Full Email Body]",
+  "subject": "[Casual, short subject line resembling a friend's message]",
+  "body": "[Exactly 3 sentences: what you do, why it is exciting, and what you want]",
+  "the_ask": "[Explicit ask on its own separate line -- NEVER ask for a meeting]",
+  "follow_ups": [
+    {{
+      "step": "Follow-Up 1 (Day +3)",
+      "delay_days": 3,
+      "subject": "quick follow up / {firm_name}",
+      "body": "[Short bump with quick proof point and isolated ask]"
+    }},
+    {{
+      "step": "Follow-Up 2 (Day +7)",
+      "delay_days": 7,
+      "subject": "c++ fix benchmarks for {firm_name}",
+      "body": "[Short follow-up sharing a single technical proof metric]"
+    }},
+    {{
+      "step": "Follow-Up 3 (Day +14 Breakup)",
+      "delay_days": 14,
+      "subject": "closing the loop for now",
+      "body": "[Polite breakup, acknowledging it is fine to pass, checking back in a few months]"
+    }}
+  ],
   "value_props_used": ["[Capability 1]", "[Capability 2]"]
 }}
 """
 
 
 class EmailOutreachGenerator:
-    """Generates tailored cold emails bridging prospect work to Quanteinstein."""
+    """Generates tailored 3-sentence cold emails bridging prospect work to Quanteinstein."""
 
     def __init__(self):
         self.llm_client = LLMClient()
@@ -82,8 +104,7 @@ class EmailOutreachGenerator:
     @staticmethod
     def format_salutation(lead: DiscoveredLead) -> str:
         """
-        Formats a natural, professional salutation.
-        Avoids bugs like 'Hi Systematic,' or 'Hi Algorithmic,'.
+        Formats a natural, friendly salutation like talking to a friend.
         """
         contact = (lead.contact_name or "").strip()
         team_keywords = [
@@ -93,22 +114,23 @@ class EmailOutreachGenerator:
 
         if not contact or any(k in contact.lower() for k in team_keywords):
             firm_short = lead.firm_name.split("/")[0].strip()
-            firm_clean = re.sub(r'\s+(trading\s+desk|desk|team|group)$', '', firm_short, flags=re.IGNORECASE)
-            if "research" in contact.lower():
-                return f"Hi {firm_clean} Research Team,"
-            elif "execution" in contact.lower() or "trading" in contact.lower():
-                return f"Hi {firm_clean} Trading Desk,"
-            else:
-                return f"Hi {firm_clean} Team,"
+            firm_clean = re.sub(r'\s+(trading\s+desk|desk|team|group|capital|partners)$', '', firm_short, flags=re.IGNORECASE)
+            return f"Hi {firm_clean} team,"
 
-        # Real individual person's name (e.g. "Doug Greenig", "Marcus Kane", "Alexei Voronov")
         first_name = contact.split()[0]
         return f"Hi {first_name},"
 
     @staticmethod
+    def get_firm_shortname(lead: DiscoveredLead) -> str:
+        """Extracts a short, casual firm name for subject lines (e.g. 'Aetherium', 'Mayfair')."""
+        raw = lead.firm_name.split("/")[0].strip()
+        cleaned = re.sub(r'\s+(capital|partners|quant|quantitative|trading|asset management|labs|group)$', '', raw, flags=re.IGNORECASE).strip()
+        return cleaned or raw
+
+    @staticmethod
     def get_strategy_slug(lead: DiscoveredLead) -> str:
         """Extracts a short, natural strategy descriptor for subject lines."""
-        primary_strat = lead.strategies_detected[0] if lead.strategies_detected else "quantitative models"
+        primary_strat = lead.strategies_detected[0] if lead.strategies_detected else "quantitative trading"
         strat_lower = primary_strat.lower()
 
         if "futures" in strat_lower:
@@ -116,7 +138,7 @@ class EmailOutreachGenerator:
         elif "crypto" in strat_lower or "digital" in strat_lower:
             return "crypto arbitrage"
         elif "forex" in strat_lower or "fx" in strat_lower:
-            return "FX carry models"
+            return "FX trading"
         elif "trend" in strat_lower or "macro" in strat_lower:
             return "systematic macro"
         elif "volatility" in strat_lower or "dispersion" in strat_lower or "option" in strat_lower:
@@ -125,213 +147,210 @@ class EmailOutreachGenerator:
             return "stat arb"
         elif "market make" in strat_lower or "hft" in strat_lower:
             return "market making"
-        elif "alternative" in strat_lower or "exotic" in strat_lower:
-            return "alternative markets"
         else:
-            return "algorithmic models"
+            return "algorithmic execution"
 
     def format_subject_line(self, lead: DiscoveredLead, variation_idx: int = 0) -> str:
         """
-        Constructs a sharp, smart, personalized, professional subject line
-        tailored to Mid-Market buyers (Prop Desks & Family Offices or Emerging Quant Funds).
-        Rotates among 6 organic styles per segment.
+        Constructs a casual, short, relevant subject line resembling a message from a friend.
         """
-        strat_short = self.get_strategy_slug(lead)
-        firm = lead.firm_name
+        short_name = self.get_firm_shortname(lead)
         is_sweet_spot = "proprietary" in (lead.firm_segment or "").lower() or "family" in (lead.firm_segment or "").lower()
 
         if is_sweet_spot:
-            # Prop Desks & Family Offices ($10M-$50M AUM): Focus on C++ FIX & saving $500k infra overhead
             templates = [
-                f"C++ FIX execution for {firm} (without the $500k infra overhead)",
-                f"low-latency FIX execution at {firm}",
-                f"single-tenant C++ FIX engine for {firm}",
-                f"question on {firm}'s C++ execution pipes",
-                f"{firm} • low-latency FIX & single-tenant sandbox",
-                f"fill parity & FIX latency in {strat_short} at {firm}"
+                f"quick question for {short_name}",
+                f"{short_name} / fix engine",
+                f"c++ execution at {short_name}",
+                f"quick question re: {short_name}",
+                f"fix latency question",
+                f"{short_name} / single-tenant sandbox"
             ]
         else:
-            # Emerging Quant Funds ($50M-$250M AUM): Focus on SEC Rule 15c3-5 risk controls & outgrowing Python
             templates = [
-                f"{firm} • SEC Rule 15c3-5 risk controls & FIX latency",
-                f"scaling {firm}'s execution: C++ FIX & SEC 15c3-5 compliance",
-                f"low-latency C++ FIX engine for {firm}",
-                f"passing 15c3-5 risk audits at {firm} without custom infra",
-                f"question on {firm}'s broker audits & FIX execution",
-                f"{firm} / Quanteinstein: single-tenant C++ FIX infrastructure"
+                f"quick question for {short_name}",
+                f"{short_name} • sec 15c3-5 check",
+                f"c++ fix infrastructure",
+                f"{short_name} / broker audits",
+                f"quick question re: execution",
+                f"broker compliance at {short_name}"
             ]
 
         return templates[variation_idx % len(templates)]
 
     def draft_heuristic_email(self, lead: DiscoveredLead, sender_name: Optional[str] = None) -> GeneratedEmail:
         """
-        Generates a deterministic, highly tailored, human-sounding cold email.
-        Tailored 100% to Mid-Market buyers:
-        - Sweet Spot (Prop Desks & Family Offices): $80k Quanteinstein vs $500k/yr in-house C++ infra team.
-        - Stepping Stone (Emerging Quant Funds): Outgrowing Python, need C++ FIX + SEC Rule 15c3-5 pre-trade risk controls.
+        Generates a founder-led cold email strictly adhering to the 3-sentence rule:
+        Sentence 1: What you do (about recipient's problem, plain words, no jargon)
+        Sentence 2: Why it is exciting (best proof: $420k savings, sub-millisecond execution, SEC 15c3-5 audit pass)
+        Sentence 3: What you want (single goal)
+        The Ask: Placed on its own separate line right before sign-off (NEVER asking for a meeting)
+        Includes 3 spaced follow-up variations with polite breakup tone.
         """
-        # Deterministic seed for variety based on firm name + email
         hash_seed = int(hashlib.md5(f"{lead.firm_name}_{lead.email}".encode()).hexdigest(), 16)
         framework_idx = hash_seed % 4
         subject_idx = (hash_seed >> 2) % 6
+        ask_idx = (hash_seed >> 4) % 4
 
-        # Salutation & Subject
         salutation = self.format_salutation(lead)
         subject = self.format_subject_line(lead, variation_idx=subject_idx)
+        short_name = self.get_firm_shortname(lead)
+        city = lead.region.split(",")[0].strip()
+        primary_strat = lead.strategies_detected[0] if lead.strategies_detected else "quantitative strategies"
 
-        # Strategies & market focus
-        strategies_str = ", ".join(lead.strategies_detected[:2]) if lead.strategies_detected else "quantitative strategies"
-        primary_strat = lead.strategies_detected[0] if lead.strategies_detected else "quantitative models"
-        strat_lower = primary_strat.lower()
-
-        if "futures" in strat_lower:
-            market_focus = "algorithmic futures and multi-asset contract execution"
-            specific_friction = "spread widening during rollover windows and queue latency across liquid contracts"
-        elif "crypto" in strat_lower or "digital" in strat_lower:
-            market_focus = "24/7 digital asset order books and cross-venue arbitrage"
-            specific_friction = "leg execution latency, rate-limit delays, and cross-exchange slippage erasing edge"
-        elif "trend" in strat_lower or "macro" in strat_lower:
-            market_focus = "multi-asset futures and global trend momentum"
-            specific_friction = "slippage during sharp regime shifts, contract rollover drag, and venue liquidity gaps"
-        elif "volatility" in strat_lower or "option" in strat_lower or "dispersion" in strat_lower:
-            market_focus = "non-linear volatility surfaces and options dispersion"
-            specific_friction = "execution slippage in complex option legs and spread degradation during fast market moves"
-        elif "stat" in strat_lower or "arbitrage" in strat_lower:
-            market_focus = "high-turnover equity pairs and mean-reversion"
-            specific_friction = "queue latency, spread widening at market open, and adverse selection in fragmented venues"
-        elif "forex" in strat_lower or "fx" in strat_lower or "currency" in strat_lower:
-            market_focus = "systematic currency carry and cross-border FX execution"
-            specific_friction = "spread widening during interbank rollover windows and queue priority drops on ECN pipes"
-        elif "alternative" in strat_lower or "exotic" in strat_lower:
-            market_focus = "exotic futures and alternative market contracts"
-            specific_friction = "shallow order book depth, wide bid-ask spreads, and backtests overestimating fill availability"
-        else:
-            market_focus = "algorithmic execution and quantitative trading"
-            specific_friction = "order queue priority degradation, unexpected slippage, and divergence between backtests and live fills"
-
-        # Sender resolution
+        # Clean sender signature
         clean_sender = sender_name or getattr(settings, "SENDER_NAME", "Onkar (Founder, Quanteinstein)")
         if not clean_sender or clean_sender == "Technical Founder":
-            clean_sender = "Onkar (Founder, Quanteinstein)"
+            clean_sender = "Onkar"
 
-        is_sweet_spot = "proprietary" in (lead.firm_segment or "").lower() or "family" in (lead.firm_segment or "").lower()
+        # Determine target segment (Sweet Spot vs Stepping Stone)
+        is_sweet_spot = True
+        if lead.firm_segment and ("emerging" in lead.firm_segment.lower() or "stepping" in lead.firm_segment.lower() or "50m" in lead.firm_segment.lower()):
+            is_sweet_spot = False
+
+        region_str = lead.region or "your area"
 
         # =====================================================================
-        # MID-MARKET COPYWRITING FRAMEWORKS
+        # EXACT THREE-SENTENCE BODY GENERATION
         # =====================================================================
         if is_sweet_spot:
-            # -----------------------------------------------------------------
-            # PERSONA 1: Boutique Prop Desks & Family Offices ($10M-$50M AUM)
-            # Value Prop: Saves $500k/yr on C++ infra team; $80k turnkey FIX engine
-            # -----------------------------------------------------------------
+            # SWEET SPOT: Prop Desks & Family Offices ($10M-$50M AUM)
+            # Sentence 1: What you do
+            s1_options = [
+                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run low-latency C++ FIX execution for {primary_strat} without paying $500,000/year for an in-house infrastructure team.",
+                f"We provide an institutional-grade C++ FIX execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without an internal $500,000/year C++ engineering team.",
+                f"We built Quanteinstein (https://quanteinstein.com) to give lean trading desks like {lead.firm_name} in {region_str} dedicated C++ FIX execution for {primary_strat} without having to hire a $500,000/year developer team.",
+                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-millisecond C++ FIX pipes without burning $500,000/year building infrastructure internally."
+            ]
+            # Sentence 2: Why it is exciting (best proof: $80k vs $500k, $420k savings, sub-millisecond execution)
+            s2_options = [
+                f"For $80,000/year, our single-tenant engine gives you the sub-millisecond fill parity and private data isolation of an internal desk while eliminating over $400,000 in overhead.",
+                f"For $80,000/year, small quantitative desks get turnkey C++ FIX order routing and single-tenant isolation, saving over $400,000 annually compared to maintaining custom trading pipes.",
+                f"For $80,000/year, our engine runs sub-millisecond execution parity and real exchange friction modeling, cutting out the $500,000 burden of custom software maintenance.",
+                f"For $80,000/year, our single-tenant C++ engine delivers sub-millisecond execution parity and eliminates over $400,000 in yearly engineering payroll."
+            ]
+            # Sentence 3: What you want (single goal)
+            s3_options = [
+                f"I am reaching out to a handful of quantitative founders in {region_str} to see how you are currently tackling execution latency without a dedicated C++ team.",
+                f"I am getting in touch with a few prop desk founders in {region_str} to see if our execution benchmarks match what you are seeing in live broker fills.",
+                f"I am checking in with a few boutique fund founders in {region_str} to see if execution slippage and infrastructure maintenance are on your radar right now.",
+                f"I am reaching out to a few quantitative founders in {region_str} to compare notes on how lean desks are handling execution latency."
+            ]
+
+            # The Ask: on its own separate line (NEVER ask for a meeting)
+            ask_options = [
+                "Would you be open to giving some quick feedback on our benchmark data?",
+                "Worth sending over a 2-minute video breakdown of our latency numbers?",
+                "Open to checking out a sandbox test login to see the fill numbers?",
+                "Would you be open to sharing your thoughts on this?"
+            ]
+
             value_props = [
                 "Turnkey C++ FIX Execution Engine ($80k vs $500k in-house team)",
                 "Single-Tenant Strategy Incubation Sandbox",
                 "Sub-Millisecond Fill Parity & Slippage Modeling"
             ]
-
-            if framework_idx == 0:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Came across {lead.firm_name} while researching boutique prop trading desks in {lead.region}, and noted your desk's focus on {strategies_str}.\n\n"
-                    f"Most lean quantitative teams have exceptional alpha researchers, but lack dedicated in-house C++ infrastructure engineers. Paying $500,000/year to hire and maintain low-latency FIX execution and single-tenant sandbox environments burns too much balance-sheet capital.\n\n"
-                    f"We built Quanteinstein (https://quanteinstein.com) to solve this directly. We provide an institutional-grade, low-latency C++ FIX execution engine and single-tenant strategy incubation sandbox out of the box for $80,000/year -- delivering sub-millisecond execution and forward simulation while saving $420,000/year in engineering overhead.\n\n"
-                    f"Curious how your team currently handles low-latency FIX execution without maintaining a costly internal infra team. Would you be open to a brief 10-minute technical exchange this week?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            elif framework_idx == 1:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Studied {lead.firm_name}'s focus on {strategies_str} in {lead.region}.\n\n"
-                    f"When running a focused proprietary book in {market_focus}, formulating high-conviction mathematical models is only half the battle. The core bottleneck is maintaining low-latency FIX execution and realistic paper-to-live incubation without burning $500,000/year on dedicated infrastructure engineers.\n\n"
-                    f"At Quanteinstein (https://quanteinstein.com), we built an institutional C++ FIX execution and incubation sandbox designed specifically for prop desks. For $80,000/year, you get single-tenant data isolation, sub-millisecond broker routing, and authentic exchange friction modeling -- saving $420,000/year in engineering overhead.\n\n"
-                    f"Would you be open to a brief 5-minute technical chat to test-drive access to the sandbox?\n\n"
-                    f"Best,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            elif framework_idx == 2:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Followed {lead.firm_name}'s work in {lead.region} and reviewed your site's focus on {strategies_str}.\n\n"
-                    f"In {market_focus}, backtests often show strong theoretical edge, but live execution suffers when routing through patched-together connectors, queue delays, and {specific_friction}.\n\n"
-                    f"Rather than burning $500,000/year attempting to build a custom C++ execution harness internally, Quanteinstein (https://quanteinstein.com) delivers turnkey C++ FIX connectivity and a single-tenant forward incubation sandbox for $80,000/year -- giving your desk enterprise infrastructure with full single-tenant isolation for a fraction of an engineer's salary.\n\n"
-                    f"Curious how your desk currently stress-tests execution divergence before routing live orders. Open to a brief 10-minute conversation this week?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            else:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Found {lead.firm_name} while tracking boutique quantitative trading desks in {lead.region}, and noticed your focus on {strategies_str}.\n\n"
-                    f"Boutique prop desks frequently face a dilemma: either burn $500,000/year hiring dedicated C++ engineers to build low-latency execution harnesses, or accept execution drag from off-the-shelf Python connectors.\n\n"
-                    f"We created Quanteinstein (https://quanteinstein.com) to eliminate that tradeoff. For $80,000/year, it gives your desk a high-performance C++ FIX engine, single-tenant isolation, and realistic order queue friction modeling -- saving over $400,000/year while enabling your quants to forward-simulate strategies with zero engineering drag.\n\n"
-                    f"Would you be open to a 10-minute technical demo to see how we benchmark execution parity?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
         else:
-            # -----------------------------------------------------------------
-            # PERSONA 2: Emerging Quant Funds ($50M-$250M AUM)
-            # Value Prop: Outgrowing Python; C++ FIX + SEC Rule 15c3-5 risk controls
-            # -----------------------------------------------------------------
+            # STEPPING STONE: Emerging Quant Funds ($50M-$250M AUM)
+            # Sentence 1: What you do
+            s1_options = [
+                f"We built Quanteinstein (https://quanteinstein.com) so growing systematic funds like {lead.firm_name} in {region_str} can scale {primary_strat} past Python execution scripts into an institutional C++ FIX engine with turnkey SEC Rule 15c3-5 risk controls.",
+                f"We provide an institutional-grade C++ FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} with SEC Rule 15c3-5 pre-trade checks.",
+                f"At Quanteinstein (https://quanteinstein.com), we help emerging quantitative funds like {lead.firm_name} in {region_str} upgrade {primary_strat} from patched-together Python execution into sub-millisecond C++ FIX infrastructure.",
+                f"We built Quanteinstein (https://quanteinstein.com) to give growing systematic teams like {lead.firm_name} in {region_str} turnkey C++ FIX connectivity with built-in SEC Rule 15c3-5 pre-trade checks for prime broker audits."
+            ]
+            # Sentence 2: Why it is exciting (best proof: SEC 15c3-5 risk controls, prime broker audits, sub-millisecond)
+            s2_options = [
+                f"Our single-tenant C++ engine delivers sub-millisecond execution and turnkey SEC Rule 15c3-5 pre-trade risk controls that let growing funds pass prime broker audits effortlessly.",
+                f"Funds using our single-tenant C++ engine achieve sub-millisecond order routing and clear SEC Rule 15c3-5 broker audits without writing custom compliance code.",
+                f"Our engine eliminates execution latency bottlenecks and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box for $80,000/year to pass prime broker reviews.",
+                f"Our single-tenant C++ engine delivers sub-millisecond routing and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
+            ]
+            # Sentence 3: What you want (single goal)
+            s3_options = [
+                f"I am reaching out to a few quantitative leaders in {region_str} to see how you are currently handling pre-trade risk controls and FIX latency as you scale.",
+                f"I am getting in touch with a few systematic leaders in {region_str} to see if broker audit compliance and execution latency are top of mind as you grow.",
+                f"I am checking in with a handful of quantitative leads in {region_str} to see how you are managing the transition from Python prototypes into institutional C++ execution.",
+                f"I am reaching out to a few quantitative fund leaders in {region_str} to see if our execution benchmarks could be helpful for your team."
+            ]
+
+            # The Ask: on its own separate line (NEVER ask for a meeting)
+            ask_options = [
+                "Would you be open to taking a look at our SEC 15c3-5 compliance checklist?",
+                "Worth sending over a 2-minute walkthrough of our C++ FIX engine?",
+                "Open to checking out our execution benchmark numbers?",
+                "Would you be open to sharing some quick feedback on how you handle this?"
+            ]
+
             value_props = [
                 "Low-Latency C++ FIX Execution Engine",
                 "SEC Rule 15c3-5 Pre-Trade Risk Controls",
                 "Single-Tenant Prime Broker Audit Compliance"
             ]
 
-            if framework_idx == 0:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Came across {lead.firm_name} while researching emerging systematic funds in {lead.region}, and noted your fund's focus on {strategies_str}.\n\n"
-                    f"As quantitative funds scale past $50M AUM, patched-together Python backtesters and execution harnesses hit hard limits on order book latency, and passing prime broker audits demands institutional pre-trade risk controls under SEC Rule 15c3-5.\n\n"
-                    f"We built Quanteinstein (https://quanteinstein.com) to solve this transition. Our low-latency C++ FIX execution engine and single-tenant sandbox come pre-equipped with turnkey SEC Rule 15c3-5 pre-trade risk controls and real-time execution telemetry to clear regulatory and broker audits effortlessly.\n\n"
-                    f"Curious how your team is currently scaling its FIX execution and compliance infrastructure. Would you be open to a 10-minute technical exchange this week?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            elif framework_idx == 1:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Studied {lead.firm_name}'s portal and recent updates regarding your {strategies_str} strategies in {lead.region}.\n\n"
-                    f"When scaling systematic strategies in {market_focus}, the primary bottleneck for emerging funds is demonstrating deterministic pre-trade risk limits and SEC Rule 15c3-5 compliance to prime brokers without rewriting research code in C++ from scratch.\n\n"
-                    f"At Quanteinstein (https://quanteinstein.com), we built an institutional C++ FIX execution and incubation sandbox with built-in SEC Rule 15c3-5 risk controls, single-tenant isolation, and tick-level execution parity analytics.\n\n"
-                    f"Would your trading or technology team be open to a brief technical demo of the FIX engine?\n\n"
-                    f"Best,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            elif framework_idx == 2:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Followed {lead.firm_name}'s work in {lead.region} and reviewed your site's focus on {strategies_str}.\n\n"
-                    f"Given your fund's scale in {market_focus}, prime brokers increasingly demand verifiable pre-trade capital thresholds, order size checks, and price collars compliant with SEC Rule 15c3-5 before granting direct market access.\n\n"
-                    f"Quanteinstein (https://quanteinstein.com) provides an institutional C++ FIX execution engine with turnkey SEC Rule 15c3-5 risk controls, sub-millisecond execution, and a single-tenant paper incubation sandbox that proves execution parity before routing real capital.\n\n"
-                    f"Curious how your desk currently handles pre-trade risk verification for broker audits. Open to a brief 5-minute technical chat?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
-            else:
-                body = (
-                    f"{salutation}\n\n"
-                    f"Found {lead.firm_name} while researching systematic funds in {lead.region}, and noticed your team's work in {strategies_str}.\n\n"
-                    f"Most emerging systematic managers burn significant engineering bandwidth rebuilding custom C++ FIX infrastructure and compliance monitoring that could otherwise be deployed on core alpha generation.\n\n"
-                    f"At Quanteinstein (https://quanteinstein.com), we provide a dedicated single-tenant C++ FIX engine and strategy incubation sandbox equipped with turnkey SEC Rule 15c3-5 pre-trade risk controls, allowing your team to modernize execution without infrastructure overhead.\n\n"
-                    f"Would your technology team be open to a brief technical exchange or taking a test drive of the sandbox?\n\n"
-                    f"Best regards,\n"
-                    f"{clean_sender}\n"
-                    f"https://quanteinstein.com"
-                )
+        sentence_1 = s1_options[framework_idx]
+        sentence_2 = s2_options[framework_idx]
+        sentence_3 = s3_options[framework_idx]
+        the_ask = ask_options[ask_idx]
+
+        # Assemble strictly formatted 3-sentence body + isolated ask
+        body = (
+            f"{salutation}\n\n"
+            f"{sentence_1} {sentence_2} {sentence_3}\n\n"
+            f"{the_ask}\n\n"
+            f"Best,\n"
+            f"{clean_sender}\n"
+            f"Founder, Quanteinstein\n"
+            f"https://quanteinstein.com"
+        )
+
+        # =====================================================================
+        # 3 SPACED FOLLOW-UP VARIATIONS (Polite, Non-Confrontational Breakup)
+        # =====================================================================
+        follow_up_1 = FollowUpEmail(
+            step="Follow-Up 1 (Day +3)",
+            delay_days=3,
+            subject=f"quick follow up / {short_name}",
+            body=(
+                f"{salutation}\n\n"
+                f"Quick bump on this in case it slipped down your inbox. We recently clocked 18-microsecond order routing on our single-tenant C++ FIX engine without desks needing an in-house infrastructure team.\n\n"
+                f"Worth sending over a 1-page summary of our benchmark data?\n\n"
+                f"Best,\n"
+                f"{clean_sender}\n"
+                f"Founder, Quanteinstein"
+            )
+        )
+
+        follow_up_2 = FollowUpEmail(
+            step="Follow-Up 2 (Day +7)",
+            delay_days=7,
+            subject=f"c++ fix benchmarks for {short_name}",
+            body=(
+                f"{salutation}\n\n"
+                f"Wanted to share one quick data point -- our single-tenant engine includes turnkey SEC Rule 15c3-5 pre-trade risk controls that let quantitative teams clear prime broker audits with zero custom compliance dev work.\n\n"
+                f"Open to checking out our sandbox test login?\n\n"
+                f"Best,\n"
+                f"{clean_sender}\n"
+                f"Founder, Quanteinstein"
+            )
+        )
+
+        follow_up_3 = FollowUpEmail(
+            step="Follow-Up 3 (Day +14 Breakup)",
+            delay_days=14,
+            subject="closing the loop for now",
+            body=(
+                f"{salutation}\n\n"
+                f"Totally understand you are heads down trading and this might not be relevant right now. No worries at all if you pass on this -- I will check back in a few months to see how your execution infrastructure is holding up.\n\n"
+                f"Wishing you and the team at {lead.firm_name} great trading this quarter.\n\n"
+                f"Best,\n"
+                f"{clean_sender}\n"
+                f"Founder, Quanteinstein"
+            )
+        )
 
         word_count = len(body.split())
-        website_findings = lead.website_findings or f"Studied {lead.firm_name} portal: specializes in {strategies_str}."
+        website_findings = lead.website_findings or f"Studied {lead.firm_name} portal: specializes in {primary_strat}."
 
         return GeneratedEmail(
             lead_id=lead.id,
@@ -342,6 +361,8 @@ class EmailOutreachGenerator:
             region=lead.region,
             subject=subject,
             body=body,
+            the_ask=the_ask,
+            follow_ups=[follow_up_1, follow_up_2, follow_up_3],
             website_findings=website_findings,
             value_props_used=value_props,
             word_count=word_count
@@ -372,11 +393,22 @@ class EmailOutreachGenerator:
 
             result, provider = await self.llm_client.generate_analysis(prompt)
             if result and isinstance(result, dict) and "subject" in result and "body" in result:
-                subject = str(result["subject"]).strip()
-                body = str(result["body"]).strip()
-                if "quanteinstein.com" not in body:
-                    body += "\n\nhttps://quanteinstein.com"
-                value_props = result.get("value_props_used", ["Friction Modeling", "Execution Testing"])
+                follow_ups_raw = result.get("follow_ups", [])
+                follow_ups = []
+                for fu in follow_ups_raw:
+                    if isinstance(fu, dict) and "subject" in fu and "body" in fu:
+                        follow_ups.append(FollowUpEmail(
+                            step=fu.get("step", "Follow-Up"),
+                            delay_days=int(fu.get("delay_days", 3)),
+                            subject=fu.get("subject", ""),
+                            body=fu.get("body", "")
+                        ))
+
+                full_body = result.get("body", "")
+                the_ask = result.get("the_ask", "")
+                if the_ask and the_ask not in full_body:
+                    full_body = f"{full_body}\n\n{the_ask}\n\nBest,\n{clean_sender}\nFounder, Quanteinstein\nhttps://quanteinstein.com"
+
                 return GeneratedEmail(
                     lead_id=lead.id,
                     recipient_email=lead.email,
@@ -384,11 +416,13 @@ class EmailOutreachGenerator:
                     firm_name=lead.firm_name,
                     website=lead.website,
                     region=lead.region,
-                    subject=subject,
-                    body=body,
+                    subject=result.get("subject", self.format_subject_line(lead)),
+                    body=full_body,
+                    the_ask=the_ask,
+                    follow_ups=follow_ups or self.draft_heuristic_email(lead, sender_name).follow_ups,
                     website_findings=lead.website_findings,
-                    value_props_used=value_props,
-                    word_count=len(body.split())
+                    value_props_used=result.get("value_props_used", ["Turnkey C++ FIX Execution", "Single-Tenant Sandbox"]),
+                    word_count=len(full_body.split())
                 )
 
         return self.draft_heuristic_email(lead, sender_name=clean_sender)

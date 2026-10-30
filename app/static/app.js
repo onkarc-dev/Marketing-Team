@@ -659,6 +659,7 @@ function renderGeneratedEmails(emails) {
   emails.forEach((em, idx) => {
     const card = document.createElement("div");
     card.className = "email-card";
+    card.id = `emailCard_${idx}`;
 
     const mailtoLink = `mailto:${encodeURIComponent(em.recipient_email)}?subject=${encodeURIComponent(em.subject)}&body=${encodeURIComponent(em.body)}`;
     const analysisHtml = em.website_findings ? `
@@ -668,7 +669,101 @@ function renderGeneratedEmails(emails) {
       </div>
     ` : "";
 
-    const propsChecklist = (em.value_props_used || []).map(p => `<span>✓ ${escapeHtml(p)}</span>`).join("");
+    const askHtml = em.the_ask ? `
+      <div class="the-ask-box">
+        <span class="the-ask-badge">🎯 The Ask (Zero Meeting Pressure):</span>
+        <span class="the-ask-text">${escapeHtml(em.the_ask)}</span>
+      </div>
+    ` : "";
+
+    // Build Follow-up Sequence navigation tabs and panels
+    const followUps = em.follow_ups || [];
+    let sequenceNavHtml = "";
+    let sequencePanelsHtml = "";
+
+    if (followUps.length > 0) {
+      sequenceNavHtml = `
+        <div class="sequence-section">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <span style="font-size:0.75rem; font-weight:600; color:#58a6ff; font-family:var(--font-mono);">
+              📬 OUTREACH SEQUENCE (Initial + ${followUps.length} Follow-Ups)
+            </span>
+            <span style="font-size:0.68rem; color:#8b949e;">Non-confrontational cadence</span>
+          </div>
+          <div class="sequence-nav">
+            <button class="seq-tab-btn active" id="tabBtn_${idx}_0" onclick="switchSeqTab(${idx}, 0)">
+              ✉️ Step 1: Initial (Day 0)
+            </button>
+            ${followUps.map((fu, fIdx) => `
+              <button class="seq-tab-btn" id="tabBtn_${idx}_${fIdx + 1}" onclick="switchSeqTab(${idx}, ${fIdx + 1})">
+                ${escapeHtml(fu.step)}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+
+      // Panel 0: Initial Outreach
+      sequencePanelsHtml += `
+        <div class="seq-panel active" id="seqPanel_${idx}_0">
+          <div class="email-body-box">${escapeHtml(em.body)}</div>
+          ${askHtml}
+          <div class="email-card-footer">
+            <div class="constraints-checklist">
+              <span>✓ 3-Sentence Rule</span>
+              <span>✓ Isolated Low-Friction Ask</span>
+              <span>✓ ${em.word_count} words</span>
+            </div>
+            <div class="email-footer-actions">
+              <button class="btn btn-small" onclick="copyText('${escapeQuotes(em.subject)}')">Copy Subject</button>
+              <button class="btn btn-copy" onclick="copyText('${escapeQuotes(em.body)}')">Copy Full Email</button>
+              <a href="${mailtoLink}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
+              <button class="btn btn-small" style="background:#238636; color:white; border:none;" onclick="sendEmailViaSmtp(${idx}, this)">Send via SMTP (1-Click)</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Panels for Follow-Ups
+      followUps.forEach((fu, fIdx) => {
+        const fuMailto = `mailto:${encodeURIComponent(em.recipient_email)}?subject=${encodeURIComponent(fu.subject)}&body=${encodeURIComponent(fu.body)}`;
+        sequencePanelsHtml += `
+          <div class="seq-panel" id="seqPanel_${idx}_${fIdx + 1}">
+            <div class="follow-up-box">
+              <div class="follow-up-meta">
+                <span style="color:#58a6ff; font-weight:600;">${escapeHtml(fu.step)}</span>
+                <span class="delay-pill">+${fu.delay_days} Days After Previous</span>
+              </div>
+              <div class="follow-up-subject"><strong>Subject:</strong> ${escapeHtml(fu.subject)}</div>
+              <div class="follow-up-body">${escapeHtml(fu.body)}</div>
+              <div class="follow-up-actions">
+                <button class="btn btn-small" onclick="copyText('${escapeQuotes(fu.subject)}')">Copy Subject</button>
+                <button class="btn btn-small" onclick="copyText('${escapeQuotes(fu.body)}')">Copy Body</button>
+                <a href="${fuMailto}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
+                <button class="btn btn-small" style="background:#238636; color:white; border:none;" onclick="sendCustomFollowUpViaSmtp(${idx}, ${fIdx}, this)">Send Step via SMTP</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      sequencePanelsHtml = `
+        <div class="email-body-box">${escapeHtml(em.body)}</div>
+        ${askHtml}
+        <div class="email-card-footer">
+          <div class="constraints-checklist">
+            <span>✓ 3-Sentence Rule</span>
+            <span>✓ ${em.word_count} words</span>
+          </div>
+          <div class="email-footer-actions">
+            <button class="btn btn-small" onclick="copyText('${escapeQuotes(em.subject)}')">Copy Subject</button>
+            <button class="btn btn-copy" onclick="copyText('${escapeQuotes(em.body)}')">Copy Full Email</button>
+            <a href="${mailtoLink}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
+            <button class="btn btn-small" style="background:#238636; color:white; border:none;" onclick="sendEmailViaSmtp(${idx}, this)">Send via SMTP (1-Click)</button>
+          </div>
+        </div>
+      `;
+    }
 
     card.innerHTML = `
       <div class="email-card-header">
@@ -689,23 +784,61 @@ function renderGeneratedEmails(emails) {
 
       ${analysisHtml}
 
-      <div class="email-body-box">${escapeHtml(em.body)}</div>
-
-      <div class="email-card-footer">
-        <div class="constraints-checklist">
-          ${propsChecklist || '<span>✓ Mid-Market C++ Infrastructure</span>'}
-          <span>✓ ${em.word_count} words</span>
-        </div>
-        <div class="email-footer-actions">
-          <button class="btn btn-small" onclick="copyText('${escapeQuotes(em.subject)}')">Copy Subject</button>
-          <button class="btn btn-copy" onclick="copyText('${escapeQuotes(em.body)}')">Copy Full Email</button>
-          <a href="${mailtoLink}" class="btn btn-small" style="text-decoration:none; display:inline-flex; align-items:center;">Open in Mail Client</a>
-          <button class="btn btn-small" style="background:#238636; color:white; border:none;" onclick="sendEmailViaSmtp(${idx}, this)">Send via SMTP (1-Click)</button>
-        </div>
-      </div>
+      ${sequenceNavHtml}
+      ${sequencePanelsHtml}
     `;
     container.appendChild(card);
   });
+}
+
+function switchSeqTab(cardIdx, stepIdx) {
+  const card = document.getElementById(`emailCard_${cardIdx}`);
+  if (!card) return;
+  card.querySelectorAll(".seq-tab-btn").forEach(btn => btn.classList.remove("active"));
+  card.querySelectorAll(".seq-panel").forEach(p => p.classList.remove("active"));
+
+  const targetBtn = document.getElementById(`tabBtn_${cardIdx}_${stepIdx}`);
+  const targetPanel = document.getElementById(`seqPanel_${cardIdx}_${stepIdx}`);
+  if (targetBtn) targetBtn.classList.add("active");
+  if (targetPanel) targetPanel.classList.add("active");
+}
+
+async function sendCustomFollowUpViaSmtp(cardIdx, followUpIdx, btn) {
+  if (!currentCampaignData || !currentCampaignData.emails || !currentCampaignData.emails[cardIdx]) return;
+  const em = currentCampaignData.emails[cardIdx];
+  const fu = em.follow_ups && em.follow_ups[followUpIdx];
+  if (!fu) return;
+
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+
+  try {
+    const resp = await fetch("/api/discovery/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipient_email: em.recipient_email,
+        recipient_name: em.recipient_name,
+        firm_name: em.firm_name,
+        subject: fu.subject,
+        body: fu.body
+      })
+    });
+
+    const res = await resp.json();
+    if (!resp.ok) {
+      throw new Error(res.detail || "Failed to send follow-up email");
+    }
+    btn.textContent = "✓ Sent";
+    btn.style.background = "#238636";
+    showToast(`Follow-up sent to ${em.recipient_email}!`);
+  } catch (err) {
+    console.error("SMTP follow-up dispatch error:", err);
+    alert("Follow-up dispatch failed: " + err.message);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 async function sendEmailViaSmtp(idx, btn) {

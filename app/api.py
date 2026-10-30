@@ -271,17 +271,29 @@ async def run_full_discovery_campaign(query: SearchQueryRequest):
 
 @app.get("/api/discovery/export-emails")
 async def export_campaign_emails():
-    """Export all generated cold emails to CSV for email sequencing tools."""
+    """Export all generated cold emails and follow-up sequences to CSV for email sequencing tools."""
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
         "Lead ID", "Firm Name", "Region", "Recipient Name", "Recipient Email",
-        "Website", "Subject Line", "Email Body", "Value Props", "Word Count", "Created At"
+        "Website", "Subject Line", "Email Body", "The Ask",
+        "Follow-Up 1 Subject", "Follow-Up 1 Body", "Follow-Up 1 Delay Days",
+        "Follow-Up 2 Subject", "Follow-Up 2 Body", "Follow-Up 2 Delay Days",
+        "Follow-Up 3 Subject", "Follow-Up 3 Body", "Follow-Up 3 Delay Days",
+        "Value Props", "Word Count", "Created At"
     ])
     for em in active_campaign_emails:
+        fu1 = em.follow_ups[0] if len(em.follow_ups) > 0 else None
+        fu2 = em.follow_ups[1] if len(em.follow_ups) > 1 else None
+        fu3 = em.follow_ups[2] if len(em.follow_ups) > 2 else None
+
         writer.writerow([
             em.lead_id, em.firm_name, em.region, em.recipient_name, em.recipient_email,
-            em.website, em.subject, em.body, "; ".join(em.value_props_used), em.word_count, em.created_at
+            em.website, em.subject, em.body, em.the_ask or "",
+            fu1.subject if fu1 else "", fu1.body if fu1 else "", fu1.delay_days if fu1 else "",
+            fu2.subject if fu2 else "", fu2.body if fu2 else "", fu2.delay_days if fu2 else "",
+            fu3.subject if fu3 else "", fu3.body if fu3 else "", fu3.delay_days if fu3 else "",
+            "; ".join(em.value_props_used), em.word_count, em.created_at
         ])
     output.seek(0)
     return Response(

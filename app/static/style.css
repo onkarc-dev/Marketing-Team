@@ -1050,3 +1050,122 @@ input[type="text"]:focus, textarea:focus {
 }
 
 
+
+/* The Ask & Follow-up Sequence Styles */
+.the-ask-box {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.3);
+  border-left: 3px solid #58a6ff;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.65rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.the-ask-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #58a6ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.the-ask-text {
+  font-size: 0.84rem;
+  color: #f0f6fc;
+  font-style: italic;
+}
+
+.sequence-section {
+  margin-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.65rem;
+}
+
+.sequence-nav {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.seq-tab-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.seq-tab-btn:hover {
+  color: var(--text-primary);
+  border-color: #58a6ff;
+}
+
+.seq-tab-btn.active {
+  background: rgba(56, 139, 253, 0.15);
+  color: #58a6ff;
+  border-color: #58a6ff;
+  font-weight: 600;
+}
+
+.seq-panel {
+  display: none;
+}
+
+.seq-panel.active {
+  display: block;
+}
+
+.follow-up-box {
+  background: #090d16;
+  border: 1px solid rgba(56, 139, 253, 0.25);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.follow-up-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+
+.delay-pill {
+  background: rgba(210, 153, 34, 0.15);
+  border: 1px solid rgba(210, 153, 34, 0.4);
+  color: #d29922;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.follow-up-subject {
+  font-size: 0.76rem;
+  color: var(--color-cyan);
+  margin-bottom: 0.4rem;
+  font-family: var(--font-mono);
+}
+
+.follow-up-body {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #c9d1d9;
+  white-space: pre-wrap;
+  margin-bottom: 0.5rem;
+}
+
+.follow-up-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}

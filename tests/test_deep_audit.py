@@ -226,7 +226,7 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
                 self.assertNotIn(b, lead.email.lower())
 
     def test_mid_market_sweet_spot_and_stepping_stone_email_copy(self):
-        """Verifies emails pitch $500k C++ infra savings for Sweet Spot and SEC 15c3-5 for Stepping Stone."""
+        """Verifies emails focus on pain points and technical solutions without quoting price upfront."""
         # Sweet Spot Lead
         sweet_lead = DiscoveredLead(
             firm_name="Apex Prop Partners",
@@ -241,12 +241,17 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
             headcount="5 employees",
             aum="$20M AUM",
             target_decision_maker="Founder & Lead PM",
-            core_pain_point="Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+            core_pain_point="Lacks in-house C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
             relevance_score=10
         )
         sweet_email = self.generator.draft_heuristic_email(sweet_lead)
-        self.assertIn("500,000", sweet_email.body)
-        self.assertIn("80,000", sweet_email.body)
+        # Verify NO direct pricing in initial cold email
+        self.assertNotIn("80,000", sweet_email.body)
+        self.assertNotIn("500,000", sweet_email.body)
+        self.assertNotIn("$80k", sweet_email.body)
+        self.assertNotIn("$500k", sweet_email.body)
+        # Verify pain points and technical solution are addressed properly
+        self.assertTrue("infrastructure" in sweet_email.body.lower() or "slippage" in sweet_email.body.lower() or "divergence" in sweet_email.body.lower())
         self.assertIn("FIX", sweet_email.body)
         self.assertIn("Quanteinstein", sweet_email.body)
 
@@ -268,6 +273,10 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
             relevance_score=10
         )
         stepping_email = self.generator.draft_heuristic_email(stepping_lead)
+        # Verify NO direct pricing in initial cold email
+        self.assertNotIn("80,000", stepping_email.body)
+        self.assertNotIn("$", stepping_email.body)
+        # Verify compliance and latency solutions
         self.assertIn("15c3-5", stepping_email.body)
         self.assertIn("FIX", stepping_email.body)
         self.assertIn("prime broker", stepping_email.body.lower())

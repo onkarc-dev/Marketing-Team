@@ -36,8 +36,10 @@ Tone & Voice
 
 Content & Strategy
 - Make the email about the recipient and frame their problem using their own words.
+- Focus purely on their specific pain point (e.g. execution slippage, lack of in-house C++ infra devs, Python latency limits, SEC 15c3-5 broker audits) and how we solve it properly.
+- NEVER state direct pricing, fees, or dollar figures (do not quote $80,000/year, $500k savings, or software costs) in the initial cold email.
 - Find and mention an uncommon commonality to prove there is a real reason you are contacting them.
-- Lead with your best proof, such as metrics on a launch, growth, market size, or the technical team.
+- Lead with your best proof, such as metrics on execution latency (e.g., 18-microsecond routing, zero fill divergence), turnkey prime broker audit compliance, or technical sandbox capabilities.
 - Borrow credibility by naturally incorporating notable affiliations, past employers, or customer names (e.g., YC).
 - Skip all backstory, origin stories, and resume details.
 
@@ -215,23 +217,24 @@ class EmailOutreachGenerator:
         # =====================================================================
         if is_sweet_spot:
             # SWEET SPOT: Prop Desks & Family Offices ($10M-$50M AUM)
-            # Sentence 1: What you do
+            # Focus: Pain point (execution slippage, lacking dedicated C++ team) + Proper solution (turnkey FIX engine, fill parity sandbox)
+            # NO direct price quoting in initial cold outreach
             s1_options = [
-                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run low-latency C++ FIX execution for {primary_strat} without paying $500,000/year for an in-house infrastructure team.",
-                f"We provide an institutional-grade C++ FIX execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without an internal $500,000/year C++ engineering team.",
-                f"We built Quanteinstein (https://quanteinstein.com) to give lean trading desks like {lead.firm_name} in {region_str} dedicated C++ FIX execution for {primary_strat} without having to hire a $500,000/year developer team.",
-                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-millisecond C++ FIX pipes without burning $500,000/year building infrastructure internally."
+                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run low-latency C++ FIX execution for {primary_strat} without having to build and maintain complex infrastructure in-house.",
+                f"We provide a turnkey C++ FIX execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without the burden of an internal infrastructure engineering team.",
+                f"We built Quanteinstein (https://quanteinstein.com) to help lean prop trading teams like {lead.firm_name} in {region_str} eliminate the execution divergence and spread slippage that happens when {primary_strat} models move from backtests to live broker fills.",
+                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-millisecond C++ FIX pipes without burning research cycles on custom trading infrastructure."
             ]
-            # Sentence 2: Why it is exciting (best proof: $80k vs $500k, $420k savings, sub-millisecond execution)
+            # Sentence 2: How we solve it properly (best proof: sub-millisecond execution, queue friction modeling, fill parity)
             s2_options = [
-                f"For $80,000/year, our single-tenant engine gives you the sub-millisecond fill parity and private data isolation of an internal desk while eliminating over $400,000 in overhead.",
-                f"For $80,000/year, small quantitative desks get turnkey C++ FIX order routing and single-tenant isolation, saving over $400,000 annually compared to maintaining custom trading pipes.",
-                f"For $80,000/year, our engine runs sub-millisecond execution parity and real exchange friction modeling, cutting out the $500,000 burden of custom software maintenance.",
-                f"For $80,000/year, our single-tenant C++ engine delivers sub-millisecond execution parity and eliminates over $400,000 in yearly engineering payroll."
+                f"Our single-tenant C++ engine models real exchange queue friction and delivers sub-millisecond fill parity, giving your desk institutional execution speed and private data isolation out of the box.",
+                f"Our private incubation sandbox lets quantitative desks stress-test order routing against authentic exchange friction and verify true fill parity before routing capital to live broker pipes.",
+                f"Our engine delivers turnkey sub-millisecond order routing with built-in queue friction modeling and single-tenant isolation, eliminating execution drag so your researchers can focus purely on alpha.",
+                f"Our single-tenant C++ engine delivers sub-millisecond execution parity and real exchange friction modeling, bridging mathematical models directly into live trading without execution drop-off."
             ]
             # Sentence 3: What you want (single goal)
             s3_options = [
-                f"I am reaching out to a handful of quantitative founders in {region_str} to see how you are currently tackling execution latency without a dedicated C++ team.",
+                f"I am reaching out to a handful of quantitative founders in {region_str} to see how you are currently tackling execution latency and fill divergence.",
                 f"I am getting in touch with a few prop desk founders in {region_str} to see if our execution benchmarks match what you are seeing in live broker fills.",
                 f"I am checking in with a few boutique fund founders in {region_str} to see if execution slippage and infrastructure maintenance are on your radar right now.",
                 f"I am reaching out to a few quantitative founders in {region_str} to compare notes on how lean desks are handling execution latency."
@@ -246,24 +249,25 @@ class EmailOutreachGenerator:
             ]
 
             value_props = [
-                "Turnkey C++ FIX Execution Engine ($80k vs $500k in-house team)",
+                "Turnkey C++ FIX Execution Engine",
                 "Single-Tenant Strategy Incubation Sandbox",
                 "Sub-Millisecond Fill Parity & Slippage Modeling"
             ]
         else:
             # STEPPING STONE: Emerging Quant Funds ($50M-$250M AUM)
-            # Sentence 1: What you do
+            # Focus: Pain point (scaling past Python scripts, prime broker SEC 15c3-5 audits) + Proper solution (institutional C++ FIX + turnkey pre-trade compliance)
+            # NO direct price quoting in initial cold outreach
             s1_options = [
                 f"We built Quanteinstein (https://quanteinstein.com) so growing systematic funds like {lead.firm_name} in {region_str} can scale {primary_strat} past Python execution scripts into an institutional C++ FIX engine with turnkey SEC Rule 15c3-5 risk controls.",
-                f"We provide an institutional-grade C++ FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} with SEC Rule 15c3-5 pre-trade checks.",
+                f"We provide an institutional-grade C++ FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} that need to clear prime broker compliance audits.",
                 f"At Quanteinstein (https://quanteinstein.com), we help emerging quantitative funds like {lead.firm_name} in {region_str} upgrade {primary_strat} from patched-together Python execution into sub-millisecond C++ FIX infrastructure.",
                 f"We built Quanteinstein (https://quanteinstein.com) to give growing systematic teams like {lead.firm_name} in {region_str} turnkey C++ FIX connectivity with built-in SEC Rule 15c3-5 pre-trade checks for prime broker audits."
             ]
-            # Sentence 2: Why it is exciting (best proof: SEC 15c3-5 risk controls, prime broker audits, sub-millisecond)
+            # Sentence 2: How we solve it properly (best proof: SEC 15c3-5 risk controls, prime broker audits, sub-millisecond)
             s2_options = [
                 f"Our single-tenant C++ engine delivers sub-millisecond execution and turnkey SEC Rule 15c3-5 pre-trade risk controls that let growing funds pass prime broker audits effortlessly.",
                 f"Funds using our single-tenant C++ engine achieve sub-millisecond order routing and clear SEC Rule 15c3-5 broker audits without writing custom compliance code.",
-                f"Our engine eliminates execution latency bottlenecks and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box for $80,000/year to pass prime broker reviews.",
+                f"Our engine eliminates execution latency bottlenecks and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box to pass prime broker reviews.",
                 f"Our single-tenant C++ engine delivers sub-millisecond routing and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
             ]
             # Sentence 3: What you want (single goal)

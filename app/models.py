@@ -118,16 +118,16 @@ class SystemStats(BaseModel):
 class SearchQueryRequest(BaseModel):
     """Search parameters entered by the user with batch pagination support up to 1,000 targets."""
     niche: str = Field(
-        default="quantitative hedge fund",
-        description="Target industry niche (e.g., quantitative hedge fund, prop trading desk, crypto market maker)"
+        default="proprietary trading desk",
+        description="Target industry niche (e.g., proprietary trading desk, quantitative family office, emerging quant fund)"
     )
     region: str = Field(
         default="London, UK",
         description="Target geographical region, city, or country"
     )
     firm_type: Optional[str] = Field(
-        default="emerging hedge fund",
-        description="Firm stage or type (e.g., emerging hedge fund, newly launched, boutique quant desk)"
+        default="Boutique Prop Desk & Family Office (2-15 people, $10M-$50M AUM)",
+        description="Target customer persona: Sweet Spot (Prop Desk/Family Office $10M-$50M AUM) or Stepping Stone (Emerging Quant Fund $50M-$250M AUM)"
     )
     num_results: int = Field(default=50, ge=1, le=1000, description="Number of firms per batch (e.g. 10, 25, 50, 100)")
     offset: int = Field(default=0, ge=0, le=1000, description="Pagination offset (e.g., 0 for 1-50, 50 for 51-100)")
@@ -137,7 +137,7 @@ class SearchQueryRequest(BaseModel):
 
 
 class DiscoveredLead(BaseModel):
-    """A target firm discovered through Google/web search with extracted contact data."""
+    """A target mid-market firm discovered through web search with extracted contact data."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     firm_name: str
     website: str
@@ -152,7 +152,28 @@ class DiscoveredLead(BaseModel):
         default=None,
         description="Granular findings and observations extracted after studying the firm's website/portal"
     )
-    relevance_score: int = Field(default=9, ge=1, le=10)
+    # Mid-Market Persona Attributes
+    firm_segment: str = Field(
+        default="Proprietary Trading Firm & Family Office",
+        description="Customer tier: 'Proprietary Trading Firm & Family Office' (Sweet Spot) or 'Emerging Quantitative Fund' (Stepping Stone)"
+    )
+    headcount: str = Field(
+        default="2–15 employees",
+        description="Estimated firm headcount (2-15 for Sweet Spot, 15-40 for Stepping Stone)"
+    )
+    aum: str = Field(
+        default="$10M – $50M AUM",
+        description="Estimated AUM ($10M-$50M for Sweet Spot, $50M-$250M for Stepping Stone)"
+    )
+    target_decision_maker: str = Field(
+        default="Founder & Lead PM",
+        description="Target buyer: 'Founder & Lead PM' (no CISO bureaucracy) or 'Head of Quant Trading / CTO' (seeking SEC 15c3-5 compliance)"
+    )
+    core_pain_point: Optional[str] = Field(
+        default="Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        description="Primary commercial trigger for $80k Quanteinstein deployment"
+    )
+    relevance_score: int = Field(default=10, ge=1, le=10)
 
 
 class GeneratedEmail(BaseModel):

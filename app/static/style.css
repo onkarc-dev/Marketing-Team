@@ -1005,4 +1005,48 @@ input[type="text"]:focus, textarea:focus {
   color: #c9d1d9;
 }
 
+/* Mid-Market Segmentation & Metrics Badges */
+.firm-segment-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-sweet-spot {
+  background: rgba(35, 134, 54, 0.18);
+  border: 1px solid rgba(46, 160, 67, 0.4);
+  color: #3fb950;
+}
+
+.badge-stepping-stone {
+  background: rgba(56, 139, 253, 0.15);
+  border: 1px solid rgba(56, 139, 253, 0.35);
+  color: #58a6ff;
+}
+
+.firm-metrics-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.metric-pill {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: #c9d1d9;
+}
+
+.metric-buyer {
+  color: #58a6ff;
+  border-color: rgba(56, 139, 253, 0.4);
+  background: rgba(56, 139, 253, 0.08);
+}
+
 

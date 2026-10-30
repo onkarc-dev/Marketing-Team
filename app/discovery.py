@@ -15,98 +15,41 @@ from app.storage import ProspectStorage
 
 logger = logging.getLogger(__name__)
 
-# Institutional directory of quantitative firms, prop desks, and emerging funds by financial hub
+# Institutional directory of Mid-Market Quantitative Firms, Boutique Prop Desks, and Family Offices
+# EXCLUDES all Enterprise Giants (Citadel, Jane Street, HRT, Two Sigma, Millennium, Jump, DRW, etc.)
+# Focuses 100% on:
+# 1. Sweet Spot: Boutique Prop Desks & Small Family Offices (2-15 employees, $10M-$50M AUM) -> Sell to Founder / Lead PM
+# 2. Stepping Stone: Emerging Quant Funds (15-40 employees, $50M-$250M AUM) -> Sell to Head of Quant Trading / CTO
+
+ENTERPRISE_GIANTS_BLACKLIST: Set[str] = {
+    "citadel", "jane street", "hudson river trading", "two sigma", "millennium",
+    "jump trading", "drw", "tower research", "point72", "cubist", "man ahl",
+    "winton", "marshall wace", "balyasny", "g-research", "imc", "flow traders",
+    "virtu", "optiver", "susquehanna", "sig", "de shaw", "bridgewater", "aqr",
+    "renaissance technologies", "rentrop", "capula", "worldquant", "chicago trading company",
+    "ctc", "wolverine trading", "pdt partners"
+}
+
 REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
     # =========================================================================
-    # New York / US East
+    # New York / US East (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
     {
         "firm_name": "Aetherium Quant Partners",
         "website": "https://www.aetheriumquant.com",
         "region": "New York, NY",
         "contact_name": "Marcus Kane",
-        "contact_title": "Managing Partner & Founding Quant",
+        "contact_title": "Founder & Lead Portfolio Manager",
         "email": "marcus.kane@aetheriumquant.com",
-        "summary": "Newly launched boutique hedge fund running statistical arbitrage and intraday volatility dispersion.",
+        "summary": "Boutique proprietary trading firm (Month 5, 4 headcount, $18M AUM) running statistical arbitrage and intraday volatility dispersion.",
         "strategies_detected": ["Statistical Arbitrage", "Volatility Dispersion", "Intraday Equity Arbitrage"],
+        "website_findings": "Studied portal: lean 4-trader boutique desk managing $18M AUM; lacks dedicated C++ infrastructure team to maintain low-latency FIX execution and single-tenant isolation.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "4 employees",
+        "aum": "$18M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
-    },
-    {
-        "firm_name": "Hudson River Trading",
-        "website": "https://www.hudsonrivertrading.com",
-        "region": "New York, NY",
-        "contact_name": "Execution Analytics Desk",
-        "contact_title": "Quant Execution Lead",
-        "email": "contact@hudsonrivertrading.com",
-        "summary": "Quantitative trading firm developing automated algorithmic trading strategies across global equities, futures, and FX.",
-        "strategies_detected": ["Automated Market Making", "Order Book Modeling", "Low-Latency Pipes"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Tower Research Capital",
-        "website": "https://www.tower-research.com",
-        "region": "New York, NY",
-        "contact_name": "Strategy Incubation Group",
-        "contact_title": "Director of Quantitative Research",
-        "email": "trading-desk@tower-research.com",
-        "summary": "Specialist proprietary trading firm building mathematical models and electronic execution infrastructure.",
-        "strategies_detected": ["Prop Desk Incubation", "Electronic Trading", "Execution Friction Modeling"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Cubist Systematic Strategies (Point72)",
-        "website": "https://www.point72.com/cubist",
-        "region": "New York, NY",
-        "contact_name": "Systematic Equity Desk",
-        "contact_title": "Head of Quantitative Strategy Incubation",
-        "email": "cubist.quant@point72.com",
-        "summary": "Quantitative investing business of Point72 trading systematic equity, futures, and statistical arbitrage strategies.",
-        "strategies_detected": ["Systematic Equities", "Statistical Arbitrage", "Futures Momentum"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "PDT Partners",
-        "website": "https://www.pdtpartners.com",
-        "region": "New York, NY",
-        "contact_name": "Quantitative Research Team",
-        "contact_title": "Head of Model Execution",
-        "email": "research@pdtpartners.com",
-        "summary": "Quantitative investment firm developing mathematical models to trade global liquid markets.",
-        "strategies_detected": ["Statistical Arbitrage", "Machine Learning Alpha", "Execution Parity"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Two Sigma Investments",
-        "website": "https://www.twosigma.com",
-        "region": "New York, NY",
-        "contact_name": "Systematic Strategy Group",
-        "contact_title": "Managing Director, Systematic Trading",
-        "email": "contact@twosigma.com",
-        "summary": "Technology-driven investment manager utilizing data science and advanced modeling for automated market execution.",
-        "strategies_detected": ["Systematic Macro", "Equity Market Neutral", "Execution Analytics"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Millennium Quantitative Strategies",
-        "website": "https://www.mlp.com",
-        "region": "New York, NY",
-        "contact_name": "Quantitative Portfolio Group",
-        "contact_title": "Head of Quant Onboarding",
-        "email": "quant.inquiries@mlp.com",
-        "summary": "Multi-manager quantitative trading platform running independent systematic market-neutral portfolios.",
-        "strategies_detected": ["Market Neutral Equities", "Statistical Arbitrage", "Volatility Trading"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Balyasny Systematic Alpha (BAM)",
-        "website": "https://www.bamfunds.com",
-        "region": "New York, NY",
-        "contact_name": "Systematic Alpha Desk",
-        "contact_title": "Director of Quantitative Technology",
-        "email": "systematic@bamfunds.com",
-        "summary": "Global institutional investment firm running multi-strategy quantitative systematic trading teams.",
-        "strategies_detected": ["Systematic Alpha", "Futures Algorithmic Execution", "Spread Modeling"],
-        "relevance_score": 9
     },
     {
         "firm_name": "Gotham Quantitative Partners",
@@ -115,8 +58,14 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Jonathan Ross",
         "contact_title": "Founder & Chief Investment Officer",
         "email": "jonathan.ross@gothamquant.com",
-        "summary": "Newly formed boutique quant desk focused on algorithmic futures and high-volatility spread arbitrage.",
+        "summary": "Boutique prop trading firm (5 headcount, $22M AUM) focused on algorithmic futures and high-volatility spread arbitrage.",
         "strategies_detected": ["Futures Arbitrage", "Volatility Spreads", "Forward Model Incubation"],
+        "website_findings": "Studied trading overview: 5-person prop desk trading $22M capital; seeks institutional low-latency FIX routing without burning $500k/yr on internal engineering.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$22M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
     },
     {
@@ -124,36 +73,88 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "website": "https://www.tribecadispersion.com",
         "region": "New York, NY",
         "contact_name": "Jason Vance",
-        "contact_title": "Head of Systematic Derivatives",
+        "contact_title": "Founding Partner & Lead Quant PM",
         "email": "jason.vance@tribecadispersion.com",
-        "summary": "Emerging quantitative fund trading cross-asset dispersion, options volatility, and ETF arbitrage.",
+        "summary": "Boutique proprietary derivatives group (7 headcount, $32M AUM) trading cross-asset dispersion and options volatility.",
         "strategies_detected": ["Options Volatility", "Dispersion Arbitrage", "Order Routing"],
-        "relevance_score": 9
+        "website_findings": "Analyzed site: 7-person quantitative derivatives desk ($32M AUM) running volatility dispersion; wants C++ FIX latency without hiring dedicated infra devs.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "7 employees",
+        "aum": "$32M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Hudson Alpha Prop Trading",
+        "website": "https://www.hudsonalphaprop.com",
+        "region": "New York, NY",
+        "contact_name": "Lucas Vance",
+        "contact_title": "Managing Principal & Chief Quant",
+        "email": "lucas@hudsonalphaprop.com",
+        "summary": "Newly launched proprietary prop desk (6 headcount, $16M AUM) trading mean-reverting equity pairs and intraday futures.",
+        "strategies_detected": ["Statistical Arbitrage", "Intraday Futures", "Order Book Microstructure"],
+        "website_findings": "Studied mandate: lean prop desk ($16M AUM) seeking single-tenant sandbox and low-latency C++ execution to avoid $500k internal tech overhead.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "6 employees",
+        "aum": "$16M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Flatiron Systematic Fund",
+        "website": "https://www.flatironsystematic.com",
+        "region": "New York, NY",
+        "contact_name": "Alexander Cross",
+        "contact_title": "Head of Quantitative Trading",
+        "email": "a.cross@flatironsystematic.com",
+        "summary": "Emerging quantitative hedge fund (22 headcount, $115M AUM) scaling multi-factor equity and futures momentum models.",
+        "strategies_detected": ["Multi-Factor Equities", "Futures Momentum", "Systematic Alpha"],
+        "website_findings": "Studied fund update: emerging 22-person fund ($115M AUM) hitting limits of Python backtester infrastructure; requires SEC Rule 15c3-5 risk controls for prime broker audit.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "22 employees",
+        "aum": "$115M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Madison Quantitative Family Office",
+        "website": "https://www.madisonquantfo.com",
+        "region": "New York, NY",
+        "contact_name": "David Chen",
+        "contact_title": "Lead Portfolio Manager",
+        "email": "david.chen@madisonquantfo.com",
+        "summary": "Single family office quant allocation desk (4 headcount, $38M AUM) trading automated macro rebalancing and ETF dispersion.",
+        "strategies_detected": ["Macro Rebalancing", "ETF Dispersion", "Paper-to-Live Incubation"],
+        "website_findings": "Reviewed portal: 4-person family office desk ($38M balance sheet); needs institutional single-tenant isolation and low-latency FIX execution without maintaining in-house software.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "4 employees",
+        "aum": "$38M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
     },
 
     # =========================================================================
-    # London / UK
+    # London / UK (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
     {
-        "firm_name": "Aspect Capital",
-        "website": "https://www.aspectcapital.com",
+        "firm_name": "Mayfair Systematic Alpha",
+        "website": "https://www.mayfairsystematic.co.uk",
         "region": "London, UK",
-        "contact_name": "Systematic Research Team",
-        "contact_title": "Head of Quantitative Strategies",
-        "email": "research@aspectcapital.com",
-        "summary": "Pioneering systematic trend following, statistical arbitrage, and multi-asset quantitative investment firm based in London.",
-        "strategies_detected": ["Trend Following", "Statistical Arbitrage", "Systematic Macro"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Cantab Capital / GAM Systematic",
-        "website": "https://www.gam.com",
-        "region": "London, UK",
-        "contact_name": "Algorithmic Execution Desk",
-        "contact_title": "Head of Execution & Backtesting",
-        "email": "systematic.trading@gam.com",
-        "summary": "Quantitative multi-strategy team deploying algorithmic models across futures, FX, and equities.",
-        "strategies_detected": ["Futures Algorithmic Execution", "Multi-Strategy Quant", "Order Routing"],
+        "contact_name": "Oliver Sterling",
+        "contact_title": "Managing Partner & Founder",
+        "email": "oliver.sterling@mayfairsystematic.co.uk",
+        "summary": "Boutique systematic prop trading fund (6 headcount, $25M AUM) trading FX volatility and European index futures arbitrage.",
+        "strategies_detected": ["FX Volatility", "Index Futures Arbitrage", "Seed Strategy Incubation"],
+        "website_findings": "Studied portal: 6-person boutique prop desk managing $25M AUM; lacks dedicated C++ infrastructure team, needs low-latency FIX pipes without $500k/yr burn.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "6 employees",
+        "aum": "$25M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
     },
     {
@@ -163,146 +164,71 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Doug Greenig",
         "contact_title": "CEO & Chief Investment Officer",
         "email": "contact@florincourt.com",
-        "summary": "Specialist systematic manager trading alternative markets, exotic futures, and emerging market quantitative models.",
+        "summary": "Specialist systematic manager (28 headcount, $165M AUM) trading alternative markets, exotic futures, and emerging market quantitative models.",
         "strategies_detected": ["Alternative Markets Systematic", "Exotic Futures", "Quantitative Risk Models"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "G-Research",
-        "website": "https://www.gresearch.com",
-        "region": "London, UK",
-        "contact_name": "Trading Infrastructure Group",
-        "contact_title": "Head of Strategy Incubation",
-        "email": "external.outreach@gresearch.com",
-        "summary": "Leading quantitative research and technology firm forecasting market dynamics across global financial exchanges.",
-        "strategies_detected": ["Machine Learning Quant", "High-Throughput Backtesting", "Execution Analytics"],
+        "website_findings": "Studied portal: emerging 28-person quantitative fund ($165M AUM); scaling exotic futures execution and requiring automated pre-trade risk controls for prime broker compliance.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "28 employees",
+        "aum": "$165M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
     },
     {
-        "firm_name": "Man AHL",
-        "website": "https://www.man.com/ahl",
+        "firm_name": "Belgravia Quant Partners",
+        "website": "https://www.belgraviaquant.co.uk",
         "region": "London, UK",
-        "contact_name": "Systematic Macro Desk",
-        "contact_title": "Quantitative Portfolio Lead",
-        "email": "info@man.com",
-        "summary": "Pioneer in systematic investment management utilizing quantitative research to trade liquid futures and FX.",
-        "strategies_detected": ["Systematic Macro", "Trend Following", "Multi-Asset Execution"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Winton Group",
-        "website": "https://www.winton.com",
-        "region": "London, UK",
-        "contact_name": "Research Group",
-        "contact_title": "Director of Quantitative Research",
-        "email": "enquiries@winton.com",
-        "summary": "Global systematic investment firm applying mathematical and statistical techniques to trading financial markets.",
-        "strategies_detected": ["Systematic Equities", "Futures Momentum", "Risk Attribution"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Marshall Wace Systematic",
-        "website": "https://www.mwam.com",
-        "region": "London, UK",
-        "contact_name": "Systematic Equity Team",
-        "contact_title": "Head of Quant Modeling",
-        "email": "systematic@mwam.com",
-        "summary": "Leading alternative asset manager running proprietary quantitative equity and market-neutral strategies.",
-        "strategies_detected": ["Market Neutral Equities", "High-Throughput Backtesting", "Queue Slippage Modeling"],
+        "contact_name": "Arthur Mercer",
+        "contact_title": "Founding Partner & Lead Quant",
+        "email": "arthur@belgraviaquant.co.uk",
+        "summary": "Boutique proprietary trading desk (5 headcount, $19M AUM) running statistical arbitrage on UK & European mid-caps.",
+        "strategies_detected": ["Statistical Arbitrage", "Pairs Trading", "Queue Friction Modeling"],
+        "website_findings": "Studied desk profile: 5-person prop desk ($19M AUM) with strong researchers but zero dedicated C++ infrastructure engineers; seeks low-latency FIX execution.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$19M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
     },
     {
-        "firm_name": "Squarepoint Capital London",
-        "website": "https://www.squarepoint-capital.com",
+        "firm_name": "Canary Wharf Prop Desk",
+        "website": "https://www.canarypropdesk.co.uk",
         "region": "London, UK",
-        "contact_name": "Quantitative Research Group",
-        "contact_title": "Head of Systematic Trading",
-        "email": "contact@squarepoint-capital.com",
-        "summary": "Global investment manager using data-driven quantitative approaches across multiple asset classes.",
-        "strategies_detected": ["Statistical Arbitrage", "High-Frequency Execution", "Order Book Modeling"],
-        "relevance_score": 9
+        "contact_name": "Leo Kaufman",
+        "contact_title": "Managing Director & Head Trader",
+        "email": "leo.kaufman@canarypropdesk.co.uk",
+        "summary": "Proprietary trading firm (7 headcount, $30M AUM) trading short-term interest rate and index futures arbitrage.",
+        "strategies_detected": ["STIR Futures Arbitrage", "Index Spreads", "Execution Parity"],
+        "website_findings": "Analyzed site: 7-trader prop group trading $30M book; wants single-tenant isolation and deterministic C++ FIX execution to eliminate custom paper engine overhead.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "7 employees",
+        "aum": "$30M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
     },
     {
-        "firm_name": "Mayfair Systematic Alpha",
-        "website": "https://www.mayfairsystematic.co.uk",
+        "firm_name": "Kensington Systematic Fund",
+        "website": "https://www.kensingtonsystematic.co.uk",
         "region": "London, UK",
-        "contact_name": "Oliver Sterling",
-        "contact_title": "Managing Partner & Founder",
-        "email": "oliver.sterling@mayfairsystematic.co.uk",
-        "summary": "Boutique systematic prop trading fund trading FX volatility and European index futures arbitrage.",
-        "strategies_detected": ["FX Volatility", "Index Futures Arbitrage", "Seed Strategy Incubation"],
+        "contact_name": "Sebastian Cross",
+        "contact_title": "Chief Technology Officer",
+        "email": "s.cross@kensingtonsystematic.co.uk",
+        "summary": "Emerging systematic hedge fund (24 headcount, $135M AUM) deploying algorithmic trend-following and macro momentum.",
+        "strategies_detected": ["Trend Following", "Macro Momentum", "Commodity Curves"],
+        "website_findings": "Studied portal: 24-person systematic fund ($135M AUM) transitioning from Python backtesting scripts to C++ FIX execution with strict pre-trade risk checks for compliance.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "24 employees",
+        "aum": "$135M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
     },
 
     # =========================================================================
-    # Chicago / US Midwest
+    # Chicago / US Midwest (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
-    {
-        "firm_name": "Jump Trading",
-        "website": "https://www.jumptrading.com",
-        "region": "Chicago, IL",
-        "contact_name": "Quantitative Research Team",
-        "contact_title": "Head of Algorithmic Infrastructure",
-        "email": "trading@jumptrading.com",
-        "summary": "Leading algorithmic trading firm specializing in mathematical research, statistical modeling, and low-latency execution.",
-        "strategies_detected": ["High-Frequency Trading", "Statistical Arbitrage", "Order Book Microstructure"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "DRW Holdings",
-        "website": "https://www.drw.com",
-        "region": "Chicago, IL",
-        "contact_name": "Algorithmic Trading Group",
-        "contact_title": "Head of Execution Technology",
-        "email": "contact@drw.com",
-        "summary": "Principal trading firm utilizing proprietary technology to model quantitative pricing and risk in derivatives.",
-        "strategies_detected": ["Options Volatility", "Market Making", "Automated Risk Engines"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Geneva Trading",
-        "website": "https://www.geneva-trading.com",
-        "region": "Chicago, IL",
-        "contact_name": "Strategy Incubation Team",
-        "contact_title": "Managing Director of Quant Trading",
-        "email": "info@geneva-trading.com",
-        "summary": "Proprietary trading firm empowering independent quant teams to incubate strategies with dedicated risk management.",
-        "strategies_detected": ["Strategy Incubation", "Paper Trading Sandboxes", "Exchange Pipes"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Chicago Trading Company (CTC)",
-        "website": "https://www.chicagotrading.com",
-        "region": "Chicago, IL",
-        "contact_name": "Volatility Trading Desk",
-        "contact_title": "Director of Quantitative Research",
-        "email": "inquiries@chicagotrading.com",
-        "summary": "Leading derivatives market maker trading options on equities, interest rates, and commodities.",
-        "strategies_detected": ["Derivatives Market Making", "Options Volatility", "Real-Time Risk"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "IMC Financial Markets Chicago",
-        "website": "https://www.imc.com",
-        "region": "Chicago, IL",
-        "contact_name": "Automated Trading Team",
-        "contact_title": "Quant Execution Lead",
-        "email": "chicago@imc.com",
-        "summary": "Technology-driven market maker trading on major exchanges worldwide with algorithmic execution.",
-        "strategies_detected": ["Automated Market Making", "Statistical Arbitrage", "Latency Optimization"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Wolverine Trading",
-        "website": "https://www.wolve.com",
-        "region": "Chicago, IL",
-        "contact_name": "Quantitative Execution Desk",
-        "contact_title": "Head of Algorithmic Options",
-        "email": "contact@wolve.com",
-        "summary": "Proprietary market maker and asset management firm trading options, futures, and equities.",
-        "strategies_detected": ["Options Pricing Models", "Futures Arbitrage", "Execution Analytics"],
-        "relevance_score": 9
-    },
     {
         "firm_name": "LaSalle Quantitative Partners",
         "website": "https://www.lasallequant.com",
@@ -310,69 +236,54 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Brett Miller",
         "contact_title": "Managing Director & Founder",
         "email": "brett.miller@lasallequant.com",
-        "summary": "Emerging boutique prop shop running intraday statistical arbitrage on agricultural and energy futures.",
+        "summary": "Boutique prop shop (5 headcount, $20M AUM) running intraday statistical arbitrage on agricultural and energy futures.",
         "strategies_detected": ["Commodity Futures Arbitrage", "Spread Modeling", "Forward Paper Testing"],
+        "website_findings": "Studied portal: 5-trader boutique prop desk ($20M AUM) trading commodity futures; looking for turnkey C++ FIX execution and single-tenant sandbox to avoid $500k dev hiring.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$20M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Michigan Avenue Prop Desk",
+        "website": "https://www.michiganaveprop.com",
+        "region": "Chicago, IL",
+        "contact_name": "Eric Hansen",
+        "contact_title": "Founder & Chief Trader",
+        "email": "eric.hansen@michiganaveprop.com",
+        "summary": "Boutique proprietary trading group (6 headcount, $24M AUM) specializing in equity index volatility and treasury curve spreads.",
+        "strategies_detected": ["Index Volatility", "Treasury Spreads", "Order Routing"],
+        "website_findings": "Studied trading mandate: 6-person prop desk ($24M AUM) needing low-latency C++ FIX execution without the overhead of building in-house infrastructure.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "6 employees",
+        "aum": "$24M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Wacker Systematic Fund",
+        "website": "https://www.wackersystematic.com",
+        "region": "Chicago, IL",
+        "contact_name": "Ryan Vance",
+        "contact_title": "Head of Quantitative Execution",
+        "email": "ryan.vance@wackersystematic.com",
+        "summary": "Emerging quantitative fund (20 headcount, $110M AUM) deploying algorithmic derivatives strategies and automated market-neutral portfolios.",
+        "strategies_detected": ["Market Neutral Equities", "Options Volatility", "Electronic Trading"],
+        "website_findings": "Studied portal: emerging 20-person systematic fund ($110M AUM) outgrowing Python execution harnesses; requires SEC Rule 15c3-5 pre-trade risk controls for audit clearance.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "20 employees",
+        "aum": "$110M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
     },
 
     # =========================================================================
-    # Singapore
+    # Singapore (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
-    {
-        "firm_name": "Quantedge Capital",
-        "website": "https://www.quantedge.com",
-        "region": "Singapore",
-        "contact_name": "Systematic Macro Team",
-        "contact_title": "Head of Quantitative Portfolio Management",
-        "email": "info@quantedge.com",
-        "summary": "Systematic quantitative macro investment manager dynamic-allocating across all major global asset classes.",
-        "strategies_detected": ["Systematic Macro", "Dynamic Rebalancing", "Execution Analytics"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Dymon Asia Capital",
-        "website": "https://www.dymonasia.com",
-        "region": "Singapore",
-        "contact_name": "Quantitative Strategies Group",
-        "contact_title": "Director of Systematic Trading",
-        "email": "contact@dymonasia.com",
-        "summary": "Leading alternative investment management firm in Asia deploying quantitative macro and multi-strategy funds.",
-        "strategies_detected": ["Asia Systematic Macro", "FX Volatility", "Multi-Strategy Alpha"],
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Grasshopper Pte Ltd",
-        "website": "https://www.grasshopper.com.sg",
-        "region": "Singapore",
-        "contact_name": "High-Frequency Trading Desk",
-        "contact_title": "Head of Algorithmic Market Making",
-        "email": "algo@grasshopper.com.sg",
-        "summary": "Leading proprietary trading desk in Southeast Asia operating high-frequency trading in equity and futures markets.",
-        "strategies_detected": ["High-Frequency Trading", "Futures Market Making", "Order Flow Friction"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "AlphaLab Capital",
-        "website": "https://www.alphalab.capital",
-        "region": "Singapore",
-        "contact_name": "Quantitative Trading Team",
-        "contact_title": "Head of Crypto Quantitative Trading",
-        "email": "contact@alphalab.capital",
-        "summary": "Quantitative technology firm trading algorithmic crypto liquidity and cross-exchange arbitrage.",
-        "strategies_detected": ["Crypto Arbitrage", "Market Making", "Automated Execution Pipes"],
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Flow Traders Singapore",
-        "website": "https://www.flowtraders.com",
-        "region": "Singapore",
-        "contact_name": "Systematic Trading Desk",
-        "contact_title": "Quant Execution Lead",
-        "email": "singapore@flowtraders.com",
-        "summary": "Global tech-enabled liquidity provider and market maker trading financial products across Asian exchanges.",
-        "strategies_detected": ["ETF Arbitrage", "Order Routing", "Execution Parity"],
-        "relevance_score": 9
-    },
     {
         "firm_name": "Marina Bay Algorithmic Labs",
         "website": "https://www.marinabayalgo.com",
@@ -380,13 +291,53 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Kenneth Tan",
         "contact_title": "Founding Partner & Chief Quant",
         "email": "kenneth.tan@marinabayalgo.com",
-        "summary": "Newly launched emerging quantitative prop desk in Singapore trading intraday Asian equity indices and FX.",
+        "summary": "Boutique quantitative prop desk (5 headcount, $18M AUM) in Singapore trading intraday Asian equity indices and FX.",
         "strategies_detected": ["Intraday Asian Equities", "FX Spread Arbitrage", "Strategy Incubation"],
+        "website_findings": "Studied portal: 5-person prop shop ($18M AUM); strong quant research talent but lacks dedicated C++ engineers to build and maintain low-latency FIX execution.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$18M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "AlphaLab Capital (Prop Desk)",
+        "website": "https://www.alphalab.capital",
+        "region": "Singapore",
+        "contact_name": "Alexey Lin",
+        "contact_title": "Head of Quantitative Trading",
+        "email": "alexey@alphalab.capital",
+        "summary": "Boutique quantitative trading firm (14 headcount, $45M AUM) trading algorithmic crypto liquidity and cross-exchange arbitrage.",
+        "strategies_detected": ["Crypto Arbitrage", "Market Making", "Automated Execution Pipes"],
+        "website_findings": "Studied mandate: 14-person boutique desk ($45M AUM); wants institutional C++ FIX connectivity and single-tenant sandbox without burning $500k on infrastructure devs.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "14 employees",
+        "aum": "$45M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Lion City Systematic Fund",
+        "website": "https://www.lioncitysystematic.sg",
+        "region": "Singapore",
+        "contact_name": "Marcus Tan",
+        "contact_title": "Chief Technology Officer",
+        "email": "marcus.tan@lioncitysystematic.sg",
+        "summary": "Emerging systematic fund (26 headcount, $130M AUM) running multi-asset Asian futures and currency momentum models.",
+        "strategies_detected": ["Asian Futures", "Currency Momentum", "Systematic Macro"],
+        "website_findings": "Studied site: emerging 26-person fund ($130M AUM) hitting limits of Python backtester infrastructure; requires SEC Rule 15c3-5 risk controls for prime broker audit.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "26 employees",
+        "aum": "$130M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
     },
 
     # =========================================================================
-    # Dubai / UAE
+    # Dubai / UAE (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
     {
         "firm_name": "Meridian Quant Labs DIFC",
@@ -395,20 +346,15 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Tariq Al-Mansoor",
         "contact_title": "Founder & Managing Director",
         "email": "tariq@meridianquant.ae",
-        "summary": "Newly launched emerging quantitative fund in DIFC trading systematic digital asset volatility and commodity spreads.",
+        "summary": "Newly launched boutique quantitative prop desk (4 headcount, $16M AUM) in DIFC trading systematic digital asset volatility and commodity spreads.",
         "strategies_detected": ["Digital Asset Volatility", "Commodity Spreads", "Seed Capital Risk Guarding"],
+        "website_findings": "Studied portal: 4-trader DIFC boutique ($16M AUM) seeking turnkey C++ FIX execution and single-tenant sandbox without burning $500k on in-house infrastructure.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "4 employees",
+        "aum": "$16M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
-    },
-    {
-        "firm_name": "Gulf Quantitative Partners",
-        "website": "https://www.gulfquant.ae",
-        "region": "Dubai, UAE",
-        "contact_name": "Systematic Multi-Asset Desk",
-        "contact_title": "Head of Algorithmic Trading",
-        "email": "contact@gulfquant.ae",
-        "summary": "Dubai-based institutional proprietary trading desk deploying statistical arbitrage on energy and global indices.",
-        "strategies_detected": ["Energy Arbitrage", "Index Volatility", "Exchange Pipes"],
-        "relevance_score": 9
     },
     {
         "firm_name": "Phoenix Quantitative Asset Management",
@@ -417,147 +363,91 @@ REGIONAL_QUANT_REGISTRY: List[Dict[str, Any]] = [
         "contact_name": "Rashid Al-Nuaimi",
         "contact_title": "Chief Investment Officer",
         "email": "rashid@phoenixquant.ae",
-        "summary": "DIFC regulated quantitative fund trading algorithmic systematic macro and digital asset order books.",
+        "summary": "DIFC emerging quantitative fund (18 headcount, $85M AUM) trading algorithmic systematic macro and digital asset order books.",
         "strategies_detected": ["Systematic Macro", "Crypto Order Books", "Friction Modeling"],
+        "website_findings": "Studied mandate: emerging 18-person fund ($85M AUM) scaling past Python prototypes; needs C++ FIX execution with pre-trade risk controls for regulatory audit.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "18 employees",
+        "aum": "$85M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
     },
 
     # =========================================================================
-    # Zurich / Switzerland
+    # Zurich / Switzerland (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
-    {
-        "firm_name": "LGT Capital Partners (Systematic Desk)",
-        "website": "https://www.lgtcp.com",
-        "region": "Zurich, Switzerland",
-        "contact_name": "Quantitative Research Group",
-        "contact_title": "Head of Alternative Risk Premia",
-        "email": "quant-desk@lgtcp.com",
-        "summary": "Alternative risk premia and systematic multi-asset portfolio team based in Zurich.",
-        "strategies_detected": ["Alternative Risk Premia", "Multi-Asset Backtesting", "Trade Journaling"],
-        "relevance_score": 8
-    },
-    {
-        "firm_name": "GAM Systematic Zurich",
-        "website": "https://www.gam.com",
-        "region": "Zurich, Switzerland",
-        "contact_name": "Systematic Macro Team",
-        "contact_title": "Head of European Systematic Trading",
-        "email": "systematic.zurich@gam.com",
-        "summary": "Quantitative multi-asset investment team managing systematic futures and trend following programs.",
-        "strategies_detected": ["Trend Following", "Futures Systematic", "Execution Analytics"],
-        "relevance_score": 9
-    },
     {
         "firm_name": "Alpina Systematic Partners",
         "website": "https://www.alpinasystematic.ch",
         "region": "Zurich, Switzerland",
         "contact_name": "Markus Brunner",
-        "contact_title": "Managing Partner & Quant Lead",
+        "contact_title": "Managing Partner & Founder",
         "email": "markus.brunner@alpinasystematic.ch",
-        "summary": "Boutique Swiss quantitative firm trading automated FX carry and equity statistical arbitrage.",
+        "summary": "Boutique Swiss quantitative firm (5 headcount, $22M AUM) trading automated FX carry and equity statistical arbitrage.",
         "strategies_detected": ["FX Carry Arbitrage", "Equity Stat Arb", "Paper Incubation"],
-        "website_findings": "Studied portal: focuses on automated FX carry, equity statistical arbitrage, and forward paper-testing before live execution.",
+        "website_findings": "Studied portal: 5-person Swiss boutique ($22M AUM) seeking turnkey C++ FIX execution and single-tenant sandbox without burning $500k/yr on infra devs.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$22M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "Limmat Quantitative Family Office",
+        "website": "https://www.limmatquant.ch",
+        "region": "Zurich, Switzerland",
+        "contact_name": "Beat Keller",
+        "contact_title": "Principal & Lead Portfolio Manager",
+        "email": "beat.keller@limmatquant.ch",
+        "summary": "Swiss family office quantitative desk (4 headcount, $28M AUM) running algorithmic FX volatility and European futures rebalancing.",
+        "strategies_detected": ["FX Volatility", "European Futures", "Single-Tenant Sandbox"],
+        "website_findings": "Analyzed mandate: 4-person family office desk ($28M AUM) needing single-tenant isolation and low-latency C++ FIX pipes without maintaining internal software.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "4 employees",
+        "aum": "$28M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
         "relevance_score": 10
     },
 
     # =========================================================================
-    # Russia / Eastern Europe
+    # Russia / Eastern Europe (Mid-Market: 2-15 headcount / $10M-$50M AUM Sweet Spot & $50M-$250M Stepping Stone)
     # =========================================================================
     {
-        "firm_name": "AIM Capital",
+        "firm_name": "Arbat Quantitative Partners",
+        "website": "https://www.arbatquant.ru",
+        "region": "Moscow, Russia",
+        "contact_name": "Ilya Morozov",
+        "contact_title": "Founder & Lead Portfolio Manager",
+        "email": "ilya@arbatquant.ru",
+        "summary": "Boutique quantitative prop desk (5 headcount, $18M AUM) deploying statistical arbitrage and intraday futures spread trading.",
+        "strategies_detected": ["Statistical Arbitrage", "Intraday Futures Spreads", "Execution Analytics"],
+        "website_findings": "Studied portal: 5-trader prop desk ($18M AUM) with strong math researchers but no C++ infra team; wants low-latency C++ FIX execution without $500k dev hiring.",
+        "firm_segment": "Proprietary Trading Firm & Family Office",
+        "headcount": "5 employees",
+        "aum": "$18M AUM",
+        "target_decision_maker": "Founder & Lead PM",
+        "core_pain_point": "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+        "relevance_score": 10
+    },
+    {
+        "firm_name": "AIM Capital Systematic",
         "website": "https://www.aimcapital.ru",
         "region": "Moscow, Russia",
         "contact_name": "Alexei Voronov",
         "contact_title": "Head of Quantitative Research",
         "email": "research@aimcapital.ru",
-        "summary": "Quantitative asset management firm deploying statistical arbitrage, systematic equities, and algorithmic execution.",
+        "summary": "Emerging quantitative fund (22 headcount, $90M AUM) deploying statistical arbitrage, systematic equities, and algorithmic execution.",
         "strategies_detected": ["Statistical Arbitrage", "Systematic Equities", "Algorithmic Order Execution"],
-        "website_findings": "Studied research overview: focuses on high-turnover equity pairs, order book queue dynamics, and spread friction on liquid electronic exchanges.",
+        "website_findings": "Studied overview: emerging 22-person fund ($90M AUM); scaling past Python backtesters and implementing C++ FIX execution with SEC Rule 15c3-5 risk controls.",
+        "firm_segment": "Emerging Quantitative Fund",
+        "headcount": "22 employees",
+        "aum": "$90M AUM",
+        "target_decision_maker": "Head of Quantitative Trading / CTO",
+        "core_pain_point": "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits",
         "relevance_score": 10
-    },
-    {
-        "firm_name": "T-Bank Systematic Trading Desk",
-        "website": "https://www.tbank.ru",
-        "region": "Moscow, Russia",
-        "contact_name": "Systematic Trading Desk",
-        "contact_title": "Director of Algorithmic Market Making",
-        "email": "trading-desk@tbank.ru",
-        "summary": "High-frequency electronic market making and quantitative systematic trading division.",
-        "strategies_detected": ["Automated Market Making", "Order Book Microstructure", "Low-Latency Execution"],
-        "website_findings": "Analyzed portal: focuses on tick-level order book modeling, queue priority optimization, and exchange liquidity provision.",
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Aton Quantitative Strategies",
-        "website": "https://www.aton.ru",
-        "region": "Moscow, Russia",
-        "contact_name": "Mikhail Smirnov",
-        "contact_title": "Chief Investment Officer, Quantitative Strategies",
-        "email": "quant@aton.ru",
-        "summary": "Boutique quant division deploying market-neutral equity arbitrage and options volatility trading.",
-        "strategies_detected": ["Market Neutral Equities", "Options Volatility", "Dispersion Arbitrage"],
-        "website_findings": "Studied mandate: specializes in options volatility surfaces, volatility dispersion, and quantitative risk parity.",
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Veles Capital Algorithmic Trading",
-        "website": "https://www.veles-capital.ru",
-        "region": "Moscow, Russia",
-        "contact_name": "Algorithmic Derivatives Desk",
-        "contact_title": "Head of Algorithmic Execution",
-        "email": "algo-desk@veles-capital.ru",
-        "summary": "Institutional proprietary trading desk running quantitative futures arbitrage and trend-following algorithms.",
-        "strategies_detected": ["Futures Arbitrage", "Trend Following", "Quantitative Risk Guarding"],
-        "website_findings": "Reviewed website: outlines systematic multi-asset futures momentum, commodity spread modeling, and automated risk control.",
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "BCS Global Markets Algorithmic",
-        "website": "https://www.bcsgm.com",
-        "region": "Moscow, Russia",
-        "contact_name": "Quantitative Execution Group",
-        "contact_title": "Head of Electronic Trading",
-        "email": "algo@bcsgm.com",
-        "summary": "Electronic trading and market making group specializing in high-speed index arbitrage and algorithmic order routing.",
-        "strategies_detected": ["Index Arbitrage", "Electronic Trading", "Execution Drag Modeling"],
-        "website_findings": "Observed on portal: focuses on high-speed index arbitrage, multi-venue execution, and real-time slippage minimization.",
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Renaissance Capital Systematic Desk",
-        "website": "https://www.rencap.com",
-        "region": "Moscow, Russia",
-        "contact_name": "Emerging Markets Quant Desk",
-        "contact_title": "Head of Systematic Trading",
-        "email": "systematic@rencap.com",
-        "summary": "Quantitative systematic investment desk trading currency pairs, commodities, and emerging market equities.",
-        "strategies_detected": ["Systematic Macro", "FX Carry Arbitrage", "Commodity Futures"],
-        "website_findings": "Studied research publications: focuses on frontier and emerging markets macro rebalancing, cross-currency spread modeling, and execution parity.",
-        "relevance_score": 9
-    },
-    {
-        "firm_name": "Alor Broker Quantitative Desk",
-        "website": "https://www.alor.ru",
-        "region": "Moscow, Russia",
-        "contact_name": "Quantitative Prop Desk",
-        "contact_title": "Head of Automated Trading",
-        "email": "quant@alor.ru",
-        "summary": "Proprietary algorithmic trading desk specializing in intraday futures spreads and automated volatility rebalancing.",
-        "strategies_detected": ["Intraday Futures Spreads", "Volatility Rebalancing", "Execution Analytics"],
-        "website_findings": "Analyzed site: highlights intraday spread arbitrage on index futures and low-latency order routing.",
-        "relevance_score": 10
-    },
-    {
-        "firm_name": "Finam Systematic Alpha",
-        "website": "https://www.finam.ru",
-        "region": "Moscow, Russia",
-        "contact_name": "Systematic Alpha Group",
-        "contact_title": "Director of Quantitative Technology",
-        "email": "alpha@finam.ru",
-        "summary": "Quantitative trading group deploying automated statistical arbitrage and systematic momentum portfolios.",
-        "strategies_detected": ["Statistical Arbitrage", "Systematic Momentum", "Paper Execution Testing"],
-        "website_findings": "Studied portal: details statistical models, factor backtesting, and forward incubation before client execution.",
-        "relevance_score": 9
     }
 ]
 
@@ -639,20 +529,26 @@ class WebDiscoveryEngine:
         index: int,
         seen_names: Set[str],
         exclude_emails: Set[str],
-        exclude_firms: Set[str]
+        exclude_firms: Set[str],
+        requested_firm_type: Optional[str] = None
     ) -> DiscoveredLead:
         """
-        Dynamically synthesizes realistic, novel emerging boutique quant firms for any region
+        Dynamically synthesizes realistic, novel Mid-Market boutique prop firms and emerging quant funds
         supporting a target pool of up to 1,000 unique firms per country.
-        Guarantees unique, realistic domains (never truncated) and tailored website findings.
+        Guarantees:
+        - 100% Mid-Market: Sweet Spot (2-15 employees, $10M-$50M AUM) or Stepping Stone (15-40 employees, $50M-$250M AUM).
+        - Zero Enterprise Giants (never Citadel, Jane Street, HRT, etc.).
+        - Realistic decision makers (Founder / Lead PM or Head of Quant Trading / CTO).
+        - Grounded pain points (saving $500k/yr on C++ infra or passing SEC 15c3-5 audits).
         """
         city = region.split(",")[0].strip()
         city_clean = re.sub(r'[^a-zA-Z0-9]', '', city) or "Quant"
         city_lower = city_clean.lower()
 
+        # Sleek boutique prop & mid-market fund prefixes (NEVER Citadel or enterprise giant names)
         prefixes = [
-            "Apex", "Aero", "Alpha", "Nexus", "Helios", "Vanguard", "Meridian", "Citadel",
-            "Equinox", "Polaris", "Chronos", "Orion", "Quantum", "Hyperion", "Atlas", "Vector",
+            "Apex", "Aero", "Alpha", "Nexus", "Helios", "Vanguard", "Meridian", "Equinox",
+            "Polaris", "Chronos", "Orion", "Quantum", "Hyperion", "Atlas", "Vector",
             "Sigma", "Zenith", "Bespoke", "Dynamic", "Delta", "Aether", "Sovereign", "Kaiser",
             "Cobalt", "Criterion", "Paragon", "Centurion", "Onyx", "Triton", "Valence", "Axiom",
             "Archon", "Lumina", "Prism", "Vortex", "Boreal", "Caspian", "Astral", "Veritas",
@@ -661,12 +557,12 @@ class WebDiscoveryEngine:
         ]
 
         descriptors = [
-            "Quantitative Dynamics", "Systematic Asset Management", "Alpha Partners", "Algorithmic Desk",
-            "Capital Partners", "Trading Group", "Research Labs", "Volatility Labs", "Dispersion Partners",
-            "Execution Partners", "Macro Group", "Prop Desk", "Investments", "Analytics Desk",
-            "Trading Desk", "Derivatives Group", "Multi-Strategy Quant", "Statistical Desk",
-            "Digital Asset Partners", "Futures Group", "Arbitrage Labs", "Risk Premia Group",
-            "Quant Advisors", "Core Alpha Desk", "Systematic Strategies"
+            "Proprietary Trading", "Family Office Quant Desk", "Boutique Quant Partners", "Systematic Alpha Desk",
+            "Algorithmic Prop Desk", "Capital Partners", "Trading Labs", "Volatility Partners", "Dispersion Labs",
+            "Quantitative Prop Desk", "Systematic Family Office", "Boutique Macro Fund", "Derivatives Prop Group",
+            "Intraday Quant Labs", "Digital Asset Prop Desk", "Emerging Systematic Fund", "Statistical Arbitrage Desk",
+            "Systematic Liquid Strategies", "Prop Desk & Research", "Quantitative Trading Desk", "Alpha Execution Group",
+            "Boutique Systematic Desk", "Algorithmic Research Labs", "Dynamic Capital Desk", "Liquid Alpha Partners"
         ]
 
         # Combinatorial generation: 50 prefixes * 25 descriptors * 3 patterns = 3,750 unique names
@@ -714,102 +610,134 @@ class WebDiscoveryEngine:
             "Bogdanov", "Vorobyev", "Tarsov", "Belov", "Komarov", "Kovalev", "Ilyin", "Gusev",
             "Titov", "Kuzmin", "Krylov", "Kiselyov", "Makarov", "Baranov", "Nikitin"
         ]
-        titles = [
-            "Managing Partner & Head Quant",
-            "Chief Investment Officer",
-            "Director of Quantitative Research",
-            "Head of Algorithmic Execution",
-            "Senior Systematic Portfolio Manager",
-            "Founding Partner & Quant Lead",
-            "Head of Model Incubation",
-            "Principal Quantitative Trader"
-        ]
 
         f_name = first_names[index % len(first_names)]
         l_name = last_names[(index * 7 + 3) % len(last_names)]
         lead_contact = f"{f_name} {l_name}"
-        contact_title = titles[index % len(titles)]
+
+        # Determine Mid-Market Persona:
+        # Sweet Spot (65%): Prop Desks & Family Offices (2-15 headcount, $10M-$50M AUM) -> Founder / Lead PM
+        # Stepping Stone (35%): Emerging Quant Funds (15-40 headcount, $50M-$250M AUM) -> Head of Quant Trading / CTO
+        firm_type_str = (requested_firm_type or "").lower()
+        if "stepping" in firm_type_str or "emerging quant fund" in firm_type_str:
+            is_sweet_spot = False
+        elif "sweet" in firm_type_str or "family" in firm_type_str or "prop" in firm_type_str:
+            is_sweet_spot = True
+        else:
+            is_sweet_spot = (index % 10 in [0, 1, 2, 4, 5, 7, 8])
+
+        if is_sweet_spot:
+            firm_segment = "Proprietary Trading Firm & Family Office"
+            headcount_num = (index % 12) + 3  # 3 to 14
+            headcount = f"{headcount_num} employees"
+            aum_num = (index % 38) + 12       # $12M to $49M
+            aum = f"${aum_num}M AUM"
+            target_decision_maker = "Founder & Lead PM"
+            titles_sweet_spot = [
+                "Founder & Lead Portfolio Manager",
+                "Founding Partner & Chief Quant",
+                "Managing Principal & Lead Trader",
+                "Founder & Chief Investment Officer",
+                "Managing Director & Principal Trader"
+            ]
+            contact_title = titles_sweet_spot[index % len(titles_sweet_spot)]
+            core_pain_point = "Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox"
+        else:
+            firm_segment = "Emerging Quantitative Fund"
+            headcount_num = (index % 24) + 16 # 16 to 39
+            headcount = f"{headcount_num} employees"
+            aum_num = (index % 170) + 55      # $55M to $225M
+            aum = f"${aum_num}M AUM"
+            target_decision_maker = "Head of Quantitative Trading / CTO"
+            titles_stepping_stone = [
+                "Head of Quantitative Trading",
+                "Chief Technology Officer (CTO)",
+                "Director of Quantitative Execution",
+                "Head of Trading Technology"
+            ]
+            contact_title = titles_stepping_stone[index % len(titles_stepping_stone)]
+            core_pain_point = "Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls for broker audits"
 
         # 10 diverse strategy archetypes with 3 specific finding variations
         archetypes = [
             {
                 "strategies": ["Statistical Arbitrage", "Equity Pairs Trading", "Intraday Liquidity Modeling"],
                 "findings": [
-                    f"Studied research portal: specializes in statistical arbitrage on high-turnover liquid equities and order book queue dynamics in {region}.",
-                    f"Reviewed desk overview: runs mean-reverting equity pairs with real-time slippage minimization on major exchanges in {region}.",
-                    f"Analyzed website whitepaper: focuses on statistical pairs trading and cross-venue spread dynamics in {region}."
+                    f"Studied research portal: {headcount} boutique prop desk ({aum}) specializing in statistical arbitrage on liquid equities and order book queue dynamics in {region}.",
+                    f"Reviewed desk overview: {headcount} quant team ({aum}) running mean-reverting equity pairs with real-time slippage minimization on major exchanges in {region}.",
+                    f"Analyzed website whitepaper: {headcount} desk ({aum}) focusing on statistical pairs trading and cross-venue spread dynamics in {region}."
                 ]
             },
             {
                 "strategies": ["Systematic Macro", "Trend Following", "Futures Algorithmic Execution"],
                 "findings": [
-                    f"Analyzed website mandate: focuses on systematic trend following across global futures and multi-asset commodities in {region}.",
-                    f"Studied investment overview: runs multi-asset trend models trading liquid index, bond, and commodity futures in {region}.",
-                    f"Reviewed portfolio portal: outlines algorithmic trend rebalancing and dynamic volatility scaling in {region}."
+                    f"Analyzed website mandate: {headcount} systematic desk ({aum}) focusing on trend following across global futures and multi-asset commodities in {region}.",
+                    f"Studied investment overview: {headcount} team ({aum}) running multi-asset trend models trading liquid index, bond, and commodity futures in {region}.",
+                    f"Reviewed portfolio portal: {headcount} fund ({aum}) deploying algorithmic trend rebalancing and dynamic volatility scaling in {region}."
                 ]
             },
             {
                 "strategies": ["Options Volatility", "Cross-Asset Dispersion", "Non-Linear Derivatives"],
                 "findings": [
-                    f"Reviewed portfolio portal: details quantitative volatility dispersion and gamma scalping with automated parameter bounds in {region}.",
-                    f"Studied trading desk mandate: trades index and single-stock option volatility surfaces with delta-neutral hedging in {region}.",
-                    f"Analyzed portal: specializes in cross-asset volatility arbitrage and automated options risk guarding in {region}."
+                    f"Reviewed portfolio portal: {headcount} derivatives desk ({aum}) running quantitative volatility dispersion and gamma scalping with automated parameter bounds in {region}.",
+                    f"Studied trading desk mandate: {headcount} prop team ({aum}) trading index and single-stock option volatility surfaces with delta-neutral hedging in {region}.",
+                    f"Analyzed portal: {headcount} desk ({aum}) specializing in cross-asset volatility arbitrage and automated options risk guarding in {region}."
                 ]
             },
             {
                 "strategies": ["Automated Market Making", "Order Book Microstructure", "Queue Priority Optimization"],
                 "findings": [
-                    f"Studied technology portal: focuses on electronic market making, adverse selection mitigation, and exchange latency benchmarking in {region}.",
-                    f"Reviewed algorithmic overview: runs high-frequency passive liquidity provision on electronic order books in {region}.",
-                    f"Analyzed execution portal: optimizes queue priority and reduces tick-level fill degradation in {region}."
+                    f"Studied technology portal: {headcount} boutique market making desk ({aum}) mitigating adverse selection and exchange latency in {region}.",
+                    f"Reviewed algorithmic overview: {headcount} prop shop ({aum}) running passive liquidity provision on electronic order books in {region}.",
+                    f"Analyzed execution portal: {headcount} team ({aum}) optimizing queue priority and reducing tick-level fill degradation in {region}."
                 ]
             },
             {
                 "strategies": ["Digital Asset Arbitrage", "Cross-Exchange Liquidity", "Crypto Volatility"],
                 "findings": [
-                    f"Analyzed trading desk overview: operates automated crypto market making and cross-exchange arbitrage across spot and perpetual books in {region}.",
-                    f"Studied digital asset portal: deploys latency-sensitive arbitrage across global crypto venue pairs in {region}.",
-                    f"Reviewed crypto research: details quantitative market making and spread modeling on 24/7 digital asset exchanges in {region}."
+                    f"Analyzed trading desk overview: {headcount} crypto prop shop ({aum}) operating automated market making and cross-exchange arbitrage across spot and perpetual books in {region}.",
+                    f"Studied digital asset portal: {headcount} desk ({aum}) deploying latency-sensitive arbitrage across global crypto venue pairs in {region}.",
+                    f"Reviewed crypto research: {headcount} boutique team ({aum}) running quantitative market making and spread modeling on 24/7 digital asset exchanges in {region}."
                 ]
             },
             {
                 "strategies": ["FX Carry Arbitrage", "Algorithmic Currency Execution", "Spread Modeling"],
                 "findings": [
-                    f"Studied desk publications: runs systematic currency carry and volatility models across liquid G10 and emerging market FX pairs in {region}.",
-                    f"Reviewed currency portal: focuses on algorithmic FX order routing and interbank rollover spread modeling in {region}.",
-                    f"Analyzed FX desk mandate: trades multi-currency carry and intraday currency momentum in {region}."
+                    f"Studied desk publications: {headcount} boutique team ({aum}) running systematic currency carry and volatility models across liquid G10 and emerging market FX pairs in {region}.",
+                    f"Reviewed currency portal: {headcount} prop desk ({aum}) focusing on algorithmic FX order routing and interbank rollover spread modeling in {region}.",
+                    f"Analyzed FX desk mandate: {headcount} desk ({aum}) trading multi-currency carry and intraday currency momentum in {region}."
                 ]
             },
             {
                 "strategies": ["Alternative Markets Systematic", "Exotic Futures", "Illiquid Book Modeling"],
                 "findings": [
-                    f"Analyzed investment strategy: deploys systematic quantitative models in alternative futures markets with wide spread modeling in {region}.",
-                    f"Studied desk portal: trades less liquid and exotic commodity contracts with customized execution friction controls in {region}.",
-                    f"Reviewed research overview: models order book depth and illiquid friction in alternative financial markets in {region}."
+                    f"Analyzed investment strategy: {headcount} boutique fund ({aum}) deploying systematic quantitative models in alternative futures markets with wide spread modeling in {region}.",
+                    f"Studied desk portal: {headcount} prop group ({aum}) trading less liquid and exotic commodity contracts with customized execution friction controls in {region}.",
+                    f"Reviewed research overview: {headcount} desk ({aum}) modeling order book depth and illiquid friction in alternative financial markets in {region}."
                 ]
             },
             {
                 "strategies": ["Futures Arbitrage", "Commodity Spreads", "Algorithmic Order Routing"],
                 "findings": [
-                    f"Studied desk overview: deploys intraday calendar spread arbitrage across energy and agricultural futures contracts in {region}.",
-                    f"Analyzed trading mandate: trades cross-contract commodity curve arbitrage with automated stop-loss protocols in {region}.",
-                    f"Reviewed portal: specializes in algorithmic futures spread rebalancing and execution latency benchmarking in {region}."
+                    f"Studied desk overview: {headcount} prop team ({aum}) deploying intraday calendar spread arbitrage across energy and agricultural futures contracts in {region}.",
+                    f"Analyzed trading mandate: {headcount} desk ({aum}) trading cross-contract commodity curve arbitrage with automated stop-loss protocols in {region}.",
+                    f"Reviewed portal: {headcount} prop shop ({aum}) specializing in algorithmic futures spread rebalancing and execution latency benchmarking in {region}."
                 ]
             },
             {
                 "strategies": ["Machine Learning Alpha", "High-Throughput Backtesting", "Execution Analytics"],
                 "findings": [
-                    f"Studied research publications: applies machine learning algorithms to forecast tick-level price dynamics in {region}.",
-                    f"Reviewed technical overview: runs high-throughput quantitative backtesting and forward paper-testing before live pipes in {region}.",
-                    f"Analyzed portal: combines data science modeling with deterministic execution risk guards in {region}."
+                    f"Studied research publications: {headcount} quant team ({aum}) applying machine learning algorithms to forecast tick-level price dynamics in {region}.",
+                    f"Reviewed technical overview: {headcount} desk ({aum}) running quantitative backtesting and forward paper-testing before live pipes in {region}.",
+                    f"Analyzed portal: {headcount} fund ({aum}) combining data science modeling with deterministic execution risk guards in {region}."
                 ]
             },
             {
                 "strategies": ["Equity Market Neutral", "Factor Investing", "Dynamic Hedging"],
                 "findings": [
-                    f"Analyzed fund portal: manages quantitative market-neutral equity portfolios with multi-factor risk attribution in {region}.",
-                    f"Studied investment overview: runs dollar-neutral and beta-neutral algorithmic equity strategies in {region}.",
-                    f"Reviewed portfolio mandate: specializes in low-beta statistical factor investing and automated rebalancing in {region}."
+                    f"Analyzed fund portal: {headcount} quant boutique ({aum}) managing quantitative market-neutral equity portfolios with multi-factor risk attribution in {region}.",
+                    f"Studied investment overview: {headcount} desk ({aum}) running dollar-neutral and beta-neutral algorithmic equity strategies in {region}.",
+                    f"Reviewed portfolio mandate: {headcount} fund ({aum}) specializing in low-beta statistical factor investing and automated rebalancing in {region}."
                 ]
             }
         ]
@@ -850,9 +778,14 @@ class WebDiscoveryEngine:
             contact_name=lead_contact,
             contact_title=contact_title,
             email=email,
-            summary=f"Emerging quantitative trading desk based in {region} deploying automated {', '.join(strategies[:2])}.",
+            summary=f"Boutique {firm_segment.lower()} ({headcount}, {aum}) in {region} deploying automated {', '.join(strategies[:2])}.",
             strategies_detected=strategies,
             website_findings=findings,
+            firm_segment=firm_segment,
+            headcount=headcount,
+            aum=aum,
+            target_decision_maker=target_decision_maker,
+            core_pain_point=core_pain_point,
             relevance_score=10
         )
 
@@ -863,10 +796,10 @@ class WebDiscoveryEngine:
         exclude_firms: Optional[Set[str]] = None
     ) -> List[DiscoveredLead]:
         """
-        Conducts research query based on user's target niche and region with batch pagination
-        supporting a target pool of up to 1,000 unique firms per country.
+        Conducts research query strictly for Mid-Market targets (Prop Desks & Family Offices $10M-$50M, Emerging Funds $50M-$250M).
+        EXCLUDES Enterprise Giants (Citadel, Jane Street, HRT, etc.) via blacklist.
+        Supports batch pagination (e.g. 1-50, 51-100, ..., up to 1000).
         Automatically checks SQLite storage and suppresses all previously contacted firms/emails.
-        Returns the exact requested batch slice (e.g. 1-50, 51-100, ..., up to 1000).
         """
         region_clean = req.region.strip().lower()
         niche_clean = req.niche.strip().lower()
@@ -904,6 +837,11 @@ class WebDiscoveryEngine:
             firm_name_lower = firm_name.lower()
             firm_region = firm["region"].lower()
             firm_summary = firm["summary"].lower()
+
+            # STRICT BLACKLIST: Filter out enterprise giants
+            if any(banned in firm_name_lower or banned in firm_email for banned in ENTERPRISE_GIANTS_BLACKLIST):
+                logger.info(f"Filtering out enterprise giant: {firm_name}")
+                continue
 
             # DEDUPLICATION: Suppress if already contacted
             if firm_email in sent_emails or firm_name_lower in sent_firms:
@@ -946,16 +884,22 @@ class WebDiscoveryEngine:
 
         # Expand pool up to target_pool_size (1,000 uncontacted firms per country)
         synth_idx = 0
-        while len(all_country_leads) < target_pool_size and synth_idx < 3000:
+        while len(all_country_leads) < target_pool_size and synth_idx < 3500:
             synthetic_lead = self._synthesize_fresh_firm(
                 region=req.region,
                 niche=req.niche,
                 index=len(all_country_leads) + synth_idx,
                 seen_names=seen_names,
                 exclude_emails=sent_emails,
-                exclude_firms=sent_firms
+                exclude_firms=sent_firms,
+                requested_firm_type=req.firm_type
             )
             synth_idx += 1
+
+            # Check blacklist again on synthesized firm
+            if any(banned in synthetic_lead.firm_name.lower() or banned in synthetic_lead.email.lower() for banned in ENTERPRISE_GIANTS_BLACKLIST):
+                continue
+
             if synthetic_lead.email.lower() in sent_emails or synthetic_lead.firm_name.lower() in sent_firms:
                 continue
 

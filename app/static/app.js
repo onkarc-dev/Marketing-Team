@@ -607,19 +607,31 @@ function renderDiscoveredFirms(leads) {
     const tags = (lead.strategies_detected || []).map(s => `<span class="tag-strategy">${escapeHtml(s)}</span>`).join("");
     const findingsHtml = lead.website_findings ? `
       <div class="firm-website-findings">
-        <span class="finding-badge">🔍 Studied Website & Mandate:</span>
+        <span class="finding-badge">🔍 Studied Mandate:</span>
         <span class="finding-text">${escapeHtml(lead.website_findings)}</span>
       </div>
     ` : "";
 
+    const isSweetSpot = (lead.firm_segment && lead.firm_segment.includes("Proprietary")) || !lead.firm_segment;
+    const segmentBadgeClass = isSweetSpot ? "badge-sweet-spot" : "badge-stepping-stone";
+    const segmentLabel = isSweetSpot ? "🎯 Sweet Spot: Prop Desk" : "📈 Stepping Stone: Emerging Fund";
+
     card.innerHTML = `
       <div class="firm-card-header">
         <span class="firm-title">${escapeHtml(lead.firm_name)}</span>
-        <span class="firm-region-badge">${escapeHtml(lead.region)}</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span class="firm-segment-badge ${segmentBadgeClass}">${segmentLabel}</span>
+          <span class="firm-region-badge">${escapeHtml(lead.region)}</span>
+        </div>
       </div>
-      <div class="firm-meta-line">
+      <div class="firm-meta-line" style="margin-bottom:0.4rem;">
         <span>🌐 <a href="${escapeHtml(lead.website)}" target="_blank" style="color:#58a6ff; text-decoration:none;">${escapeHtml(lead.website.replace("https://", ""))}</a></span>
         <span>✉️ <span class="firm-email-highlight">${escapeHtml(lead.email)}</span></span>
+      </div>
+      <div class="firm-metrics-pills">
+        <span class="metric-pill">👥 ${escapeHtml(lead.headcount || '2–15 employees')}</span>
+        <span class="metric-pill">💰 ${escapeHtml(lead.aum || '$10M–$50M AUM')}</span>
+        <span class="metric-pill metric-buyer">👔 Buyer: ${escapeHtml(lead.target_decision_maker || lead.contact_title || 'Founder & Lead PM')}</span>
       </div>
       <p class="firm-summary-text">${escapeHtml(lead.summary)}</p>
       ${findingsHtml}
@@ -656,6 +668,8 @@ function renderGeneratedEmails(emails) {
       </div>
     ` : "";
 
+    const propsChecklist = (em.value_props_used || []).map(p => `<span>✓ ${escapeHtml(p)}</span>`).join("");
+
     card.innerHTML = `
       <div class="email-card-header">
         <div class="email-row">
@@ -679,8 +693,7 @@ function renderGeneratedEmails(emails) {
 
       <div class="email-card-footer">
         <div class="constraints-checklist">
-          <span>✓ Studied site & mandate</span>
-          <span>✓ Personalized strategy bridge</span>
+          ${propsChecklist || '<span>✓ Mid-Market C++ Infrastructure</span>'}
           <span>✓ ${em.word_count} words</span>
         </div>
         <div class="email-footer-actions">

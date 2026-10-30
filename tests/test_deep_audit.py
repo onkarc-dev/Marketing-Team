@@ -191,11 +191,11 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
 
     def test_suppression_list_excludes_sent_companies_from_batches(self):
         """Verifies contacted firms are suppressed and never appear in any batch."""
-        test_email = "trading@aspectcapital.com"
-        test_firm = "aspect capital"
+        test_email = "oliver.sterling@mayfairsystematic.co.uk"
+        test_firm = "mayfair systematic alpha"
         
         req = SearchQueryRequest(
-            niche="quantitative hedge fund",
+            niche="proprietary trading desk",
             region="London, UK",
             batch_range="1-50",
             max_target_pool=1000
@@ -209,6 +209,68 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         for lead in leads:
             self.assertNotEqual(lead.email.lower(), test_email)
             self.assertNotEqual(lead.firm_name.lower(), test_firm)
+
+    def test_enterprise_giants_blacklist(self):
+        """Verifies Citadel, Jane Street, HRT, Two Sigma, Jump, DRW, etc. are strictly blacklisted."""
+        req = SearchQueryRequest(
+            niche="algorithmic trading desk",
+            region="New York, NY",
+            batch_range="1-50",
+            max_target_pool=1000
+        )
+        leads = asyncio.run(self.discovery.search_and_discover(req))
+        banned_names = ["citadel", "jane street", "hudson river trading", "two sigma", "jump trading", "drw"]
+        for lead in leads:
+            for b in banned_names:
+                self.assertNotIn(b, lead.firm_name.lower())
+                self.assertNotIn(b, lead.email.lower())
+
+    def test_mid_market_sweet_spot_and_stepping_stone_email_copy(self):
+        """Verifies emails pitch $500k C++ infra savings for Sweet Spot and SEC 15c3-5 for Stepping Stone."""
+        # Sweet Spot Lead
+        sweet_lead = DiscoveredLead(
+            firm_name="Apex Prop Partners",
+            website="https://apexproppartners.com",
+            region="London, UK",
+            contact_name="Oliver Sterling",
+            contact_title="Founder & Lead Portfolio Manager",
+            email="oliver@apexproppartners.com",
+            summary="Boutique prop desk (5 headcount, $20M AUM) running statistical arbitrage.",
+            strategies_detected=["Statistical Arbitrage"],
+            firm_segment="Proprietary Trading Firm & Family Office",
+            headcount="5 employees",
+            aum="$20M AUM",
+            target_decision_maker="Founder & Lead PM",
+            core_pain_point="Lacks $500k/yr C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
+            relevance_score=10
+        )
+        sweet_email = self.generator.draft_heuristic_email(sweet_lead)
+        self.assertIn("500,000", sweet_email.body)
+        self.assertIn("80,000", sweet_email.body)
+        self.assertIn("FIX", sweet_email.body)
+        self.assertIn("Quanteinstein", sweet_email.body)
+
+        # Stepping Stone Lead
+        stepping_lead = DiscoveredLead(
+            firm_name="Kensington Quantitative Fund",
+            website="https://kensingtonquant.co.uk",
+            region="London, UK",
+            contact_name="Sebastian Cross",
+            contact_title="Chief Technology Officer",
+            email="s.cross@kensingtonquant.co.uk",
+            summary="Emerging quant fund (24 headcount, $120M AUM) scaling multi-asset momentum.",
+            strategies_detected=["Systematic Macro"],
+            firm_segment="Emerging Quantitative Fund",
+            headcount="24 employees",
+            aum="$120M AUM",
+            target_decision_maker="Head of Quantitative Trading / CTO",
+            core_pain_point="Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls",
+            relevance_score=10
+        )
+        stepping_email = self.generator.draft_heuristic_email(stepping_lead)
+        self.assertIn("15c3-5", stepping_email.body)
+        self.assertIn("FIX", stepping_email.body)
+        self.assertIn("prime broker", stepping_email.body.lower())
 
 
 if __name__ == "__main__":

@@ -16,8 +16,8 @@
       <div class="brand">
         <div class="logo-badge">QE</div>
         <div class="brand-text">
-          <h1>QUANTEINSTEIN <span class="tag">B2B INTEL</span></h1>
-          <p class="subtitle">Quantitative Strategy Sandbox • Prospect Intent Scoring & Outreach Engine</p>
+          <h1>QUANTEINSTEIN <span class="tag">MID-MARKET B2B INTEL</span></h1>
+          <p class="subtitle">Prop Desks & Family Offices ($10M–$50M AUM) • Emerging Quant Funds ($50M–$250M AUM) • Zero Enterprise Giants</p>
         </div>
       </div>
       <div class="system-status">
@@ -280,7 +280,7 @@
           <form id="prospectorForm">
             <div class="form-group">
               <label>Target Trading Niche <span class="required">*</span></label>
-              <input type="text" id="targetNiche" placeholder="e.g. quantitative hedge fund, prop trading desk, statistical arbitrage" value="quantitative hedge fund">
+              <input type="text" id="targetNiche" placeholder="e.g. proprietary trading desk, quantitative family office, statistical arbitrage" value="proprietary trading desk">
             </div>
 
             <div class="meta-inputs">
@@ -289,8 +289,12 @@
                 <input type="text" id="targetRegion" placeholder="e.g. London, UK or New York, NY" value="London, UK">
               </div>
               <div class="form-group flex-1">
-                <label>Firm Stage / Type</label>
-                <input type="text" id="targetFirmType" placeholder="e.g. emerging hedge fund, newly launched" value="emerging hedge fund (first 6 months)">
+                <label>Mid-Market Customer Tier <span class="required">*</span></label>
+                <select id="targetFirmType" class="custom-select">
+                  <option value="Boutique Prop Desk & Family Office (2-15 people, $10M-$50M AUM)" selected>🎯 Sweet Spot: Prop Firm & Family Office (2–15 people, $10M–$50M AUM)</option>
+                  <option value="Emerging Quantitative Fund (15-40 people, $50M-$250M AUM)">📈 Stepping Stone: Emerging Quant Fund (15–40 people, $50M–$250M AUM)</option>
+                  <option value="All Mid-Market Quant Desks ($10M-$250M AUM)">🌐 All Mid-Market Quant Desks ($10M–$250M AUM)</option>
+                </select>
               </div>
             </div>
 
@@ -338,7 +342,7 @@
               <div class="form-group flex-1" style="display:flex; align-items:flex-end;">
                 <div class="pool-status-banner">
                   <span class="pool-icon">🎯</span>
-                  <span class="pool-text">Target Pool: <strong>1,000 Desks / Country</strong></span>
+                  <span class="pool-text">Mid-Market Pool: <strong>1,000 Desks / Country</strong> (Zero Enterprise Giants)</span>
                 </div>
               </div>
             </div>
@@ -401,15 +405,39 @@
     <main class="tab-content" id="rulesTab" style="display:none;">
       <div class="rules-grid">
         <section class="card">
-          <h2>Quanteinstein Value Proposition</h2>
+          <h2>Quanteinstein Value Proposition: Mid-Market Positioning</h2>
           <blockquote class="quote-box">
-            "Quanteinstein is a risk-guarded quantitative strategy incubation and paper-trading sandbox that bridges unstructured market intelligence into deterministic algorithmic execution. Through an integrated modular suite—featuring an AI Quant Coach, visual Strategy Builder, historical Backtester, live Charting, Trade Journal, and execution Analytics—it allows traders to formulate mathematical parameters, stress-test rules against historical friction, and forward-incubate strategies in a 100% paper-simulated environment before routing orders to live exchange pipes."
+            "Quanteinstein delivers a turnkey, institutional low-latency C++ FIX execution engine, Single-Tenant isolation, and real-time paper-to-live strategy incubation sandbox ($80,000/year) positioned specifically for the Mid-Market ($10M–$250M AUM). It eliminates the need to spend $500,000/year building and maintaining in-house C++ infrastructure, while providing turnkey SEC Rule 15c3-5 pre-trade risk controls to pass prime broker and regulatory audits."
           </blockquote>
 
-          <h2 style="margin-top: 1.5rem;">Target Audience & ICP</h2>
-          <p class="text-secondary">
-            Systematic retail traders, proprietary trading desks, emerging hedge funds, boutique quant firms, and portfolio management teams—including newly launched firms within their first 6 months—who want to build, backtest, and incubate automated trading strategies without the risk of emotional execution, code-heavy infrastructure overhead, or capital blowups.
-          </p>
+          <h2 style="margin-top: 1.5rem;">Target Customer Segments & Commercial Triggers</h2>
+          <div style="margin-top: 0.8rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:1rem;">
+              <h3 style="color:#3fb950; font-size:0.95rem; margin-bottom:0.4rem;">🎯 1. The Sweet Spot: Proprietary Trading Firms & Small Family Offices</h3>
+              <p style="font-size:0.82rem; color:#c9d1d9; line-height:1.45;">
+                <strong>Size:</strong> 2 to 15 employees | <strong>AUM:</strong> $10 Million to $50 Million.<br>
+                <strong>Why they buy for $80k:</strong> These desks have exceptional quantitative researchers but lack dedicated C++ infrastructure engineers. Building and maintaining low-latency FIX execution and single-tenant sandbox environments costs $500,000/year in engineer salaries. Paying Quanteinstein $80,000/year represents a massive $420k/yr net cost saving.<br>
+                <strong>The Decision Maker:</strong> Founder, Managing Partner, Principal, or Lead Portfolio Manager. Direct peer-to-peer sale with zero CISO or corporate procurement bureaucracy.
+              </p>
+            </div>
+
+            <div style="background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:1rem;">
+              <h3 style="color:#58a6ff; font-size:0.95rem; margin-bottom:0.4rem;">📈 2. The Stepping Stone: Emerging Quantitative Funds</h3>
+              <p style="font-size:0.82rem; color:#c9d1d9; line-height:1.45;">
+                <strong>Size:</strong> 15 to 40 employees | <strong>AUM:</strong> $50 Million to $250 Million.<br>
+                <strong>Why they buy for $80k:</strong> Scaling up and hitting the limits of patched-together Python backtesting infrastructure. They need low-latency C++ execution and turnkey SEC Rule 15c3-5 pre-trade risk controls to clear prime broker and regulatory audits.<br>
+                <strong>The Decision Maker:</strong> Head of Quantitative Trading or Chief Technology Officer (CTO).
+              </p>
+            </div>
+
+            <div style="background:#161b22; border:1px solid #f85149; border-radius:8px; padding:0.9rem;">
+              <h3 style="color:#f85149; font-size:0.9rem; margin-bottom:0.3rem;">🚫 The Strategy: Move Upmarket Slowly (Zero Enterprise Giants)</h3>
+              <p style="font-size:0.82rem; color:#8b949e; line-height:1.4;">
+                Do NOT waste cycles emailing Citadel, Jane Street, or Hudson River Trading—they build everything internally with nine-figure tech budgets and long procurement cycles.<br>
+                <strong>30-Day GTM Goal:</strong> Acquire just ONE small proprietary trading firm or family office. Deploy Quanteinstein's C++ FIX engine with real money, and use that proven track record as social proof to expand into the $250M fund tier.
+              </p>
+            </div>
+          </div>
         </section>
 
         <section class="card">

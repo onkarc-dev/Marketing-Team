@@ -147,7 +147,23 @@ class EmailDispatcher:
             logger.error(f"SMTP Authentication Error: {e}")
             return {
                 "success": False,
-                "message": "Authentication failed. For Gmail, please use an App Password (not your normal password)."
+                "message": "Authentication failed. For Gmail, please use a 16-character Google App Password (myaccount.google.com/apppasswords), not your standard account password."
+            }
+        except smtplib.SMTPResponseException as e:
+            err_str = str(e)
+            logger.error(f"SMTP Response Error from {host}: {err_str}")
+            if "5.4.5" in err_str or "sending limit exceeded" in err_str.lower():
+                return {
+                    "success": False,
+                    "message": (
+                        "Gmail Daily SMTP Sending Limit Exceeded: Google caps standard @gmail.com accounts at ~100 emails/day "
+                        "via SMTP. To continue sending immediately, switch to another account in .env, use 'Open in Mail Client' "
+                        "to send from the web UI, or connect a transactional SMTP relay (Brevo/SendGrid/Google Workspace)."
+                    )
+                }
+            return {
+                "success": False,
+                "message": f"SMTP sending error: {err_str}"
             }
         except Exception as e:
             logger.error(f"Failed to send email to {recipient_email}: {e}")

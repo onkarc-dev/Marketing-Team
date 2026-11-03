@@ -19,13 +19,13 @@ from app.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
-EMAIL_PROMPT_TEMPLATE = """System Prompt: Cold Email Generation Agent (Engineer-to-Engineer Systems Architect)
-You are an expert technical cold email writing assistant for Quanteinstein Technologies. Your objective is to draft highly effective, engineer-to-engineer cold outreach to Heads of Quantitative Trading, Founders, and Lead Portfolio Managers.
+EMAIL_PROMPT_TEMPLATE = """System Prompt: Cold Email Generation Agent (Founder-Led Engineer-to-Engineer)
+You are an expert technical cold email writing assistant for Quanteinstein. Your objective is to draft highly effective, founder-led cold outreach to Heads of Quantitative Trading, Founders, and Lead Portfolio Managers.
 
 You must strictly adhere to the following guidelines for every email you generate:
 
 Tone & Approach
-- Write engineer-to-engineer like a Systems Architect talking peer-to-peer to a quant fund founder.
+- Write engineer-to-engineer like a technical Founder talking peer-to-peer to a quant fund founder.
 - Skip all marketing hype, compliments, and filler words; get straight to technical reality and execution telemetry.
 - Open directly by acknowledging what they trade: "Saw {firm_name}'s focus on {strategies}."
 
@@ -45,7 +45,7 @@ The Ask
 - Signature:
   Best,
   Onkar Chougule
-  Systems Architect | Quanteinstein Technologies
+  Founder, Quanteinstein
   quanteinstein.com
 
 ### TARGET PROSPECT INTELLIGENCE
@@ -163,13 +163,13 @@ class EmailOutreachGenerator:
 
     def draft_heuristic_email(self, lead: DiscoveredLead, sender_name: Optional[str] = None) -> GeneratedEmail:
         """
-        Generates an Engineer-to-Engineer cold email strictly adhering to the Systems Architect persona:
+        Generates a founder-led Engineer-to-Engineer cold email:
         1. Direct acknowledgment: Saw {firm}'s focus on {strategy}.
         2. Core cold-start pain point: Desks under $50M AUM spending 6+ months & $200k+ building lock-free SHM & FIX from scratch.
         3. Verified hardware telemetry bullets (1.5 µs median ingress, 0 bytes heap, 2.7M/sec SPSC throughput, SEC 15c3-5).
         4. Commercial Source License ($12.5k/year early partner CSLA, 48h private VPC).
         5. Action-oriented terminal walkthrough ask on its own line.
-        6. Systems Architect signature + 228 KB Architecture Brief PDF auto-attached (NO heavy video attachments).
+        6. Founder signature + 228 KB Architecture Brief PDF auto-attached (NO heavy video attachments).
         """
         hash_seed = int(hashlib.md5(f"{lead.firm_name}_{lead.email}".encode()).hexdigest(), 16)
         subject_idx = (hash_seed >> 2) % 6
@@ -179,11 +179,11 @@ class EmailOutreachGenerator:
         short_name = self.get_firm_shortname(lead)
         primary_strat = lead.strategies_detected[0].lower() if lead.strategies_detected else "quantitative strategies"
 
-        # Systems Architect persona & signature
+        # Founder persona & signature
         sender_full = sender_name or getattr(settings, "SENDER_NAME", "Onkar Chougule")
         if not sender_full or "Founder" in sender_full or sender_full == "Technical Founder":
             sender_full = "Onkar Chougule"
-        sender_title = "Systems Architect | Quanteinstein Technologies"
+        sender_title = "Founder, Quanteinstein"
 
         # Determine target segment
         is_sweet_spot = True
@@ -313,7 +313,7 @@ class EmailOutreachGenerator:
         clean_sender = sender_name or getattr(settings, "SENDER_NAME", "Onkar Chougule")
         if not clean_sender or "Founder" in clean_sender or clean_sender == "Technical Founder":
             clean_sender = "Onkar Chougule"
-        sender_title = "Systems Architect | Quanteinstein Technologies"
+        sender_title = "Founder, Quanteinstein"
 
         if settings.LLM_PROVIDER in ("gemini", "openai") and (settings.GEMINI_API_KEY or settings.OPENAI_API_KEY):
             prompt = EMAIL_PROMPT_TEMPLATE.format(

@@ -253,7 +253,7 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertIn("SEC 15c3-5", sweet_email.body)
         self.assertIn("$12.5k/year", sweet_email.body)
         self.assertIn("10-minute terminal walkthrough", sweet_email.body)
-        self.assertIn("Systems Architect | Quanteinstein Technologies", sweet_email.body)
+        self.assertIn("Founder, Quanteinstein", sweet_email.body)
         # Verify deliverability: only 1 attachment auto-attached (PDF brief under 300KB)
         self.assertEqual(len(sweet_email.attachments), 1)
         self.assertIn("Architecture_Brief.pdf", sweet_email.attachments[0])

@@ -19,48 +19,34 @@ from app.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
-EMAIL_PROMPT_TEMPLATE = """System Prompt: Cold Email Generation Agent
-You are an expert cold email writing assistant. Your objective is to draft highly effective, founder-led cold emails. You must strictly adhere to the following guidelines for every email you generate:
+EMAIL_PROMPT_TEMPLATE = """System Prompt: Cold Email Generation Agent (Engineer-to-Engineer Systems Architect)
+You are an expert technical cold email writing assistant for Quanteinstein Technologies. Your objective is to draft highly effective, engineer-to-engineer cold outreach to Heads of Quantitative Trading, Founders, and Lead Portfolio Managers.
 
-Format & Structure
-- Keep the email short enough to be read in 60 seconds or less.
-- Limit the body to exactly three sentences covering: what you do, why it is exciting, and what you want.
-- Give every email a single goal and cut any words that do not serve that specific goal.
-- Place the explicit ask on its own separate line right before you sign off.
+You must strictly adhere to the following guidelines for every email you generate:
 
-Tone & Voice
-- Write like you are talking to a friend; the text should sound natural when read out loud.
-- Keep the subject line casual, short, and relevant, resembling a message from a friend.
-- Skip all compliments and flattery; get directly to the point.
-- Explain what you do right away using plain words and absolutely zero jargon.
+Tone & Approach
+- Write engineer-to-engineer like a Systems Architect talking peer-to-peer to a quant fund founder.
+- Skip all marketing hype, compliments, and filler words; get straight to technical reality and execution telemetry.
+- Open directly by acknowledging what they trade: "Saw {firm_name}'s focus on {strategies}."
 
-Content & Strategy
-- Make the email about the recipient and frame their problem using their own words.
-- Focus purely on their specific pain point (e.g. execution slippage, lack of in-house C++ infra devs, Python latency limits, SEC 15c3-5 broker audits) and how we solve it properly.
-- NEVER state direct pricing, fees, or dollar figures (do not quote $80,000/year, $500k savings, or software costs) in the initial cold email.
-- CRITICAL TECHNICAL SPECIFICATION: Latency MUST be framed in MICROSECONDS (μs) or NANOSECONDS (ns), NEVER milliseconds (ms or sub-millisecond).
-- Exact hardware telemetry from Quanteinstein Enterprise OS v3.0 Architecture Brief to cite:
-  * Ingestion Throughput: 2.71M orders/sec (sustained 5M burst)
-  * Steady-State Heap Allocation: 0 Bytes (strict zero-alloc assertion)
-  * Live Wire-to-Ring Latency: 1.50 μs (p50 live Binance & FX ticks)
-  * SPSC Core Latency: 363 ns p50 (min: 19 ns)
-  * Architecture: C++20 lock-free POSIX SHM ring channels (384-byte alignas(64) cacheline-partitioned memory), kernel-bypass socket layer
-  * Regulatory Compliance: Turnkey SEC Rule 15c3-5 & Reg SHO real-time pre-trade risk filters (capital collars, size limits, dynamic cryptographic locate decrement ledger)
-- Reference the 2 attached collateral files: (1) Quanteinstein Enterprise OS v3.0 Architecture Brief (PDF) and (2) Quanteinstein Execution Engine Demo (Video Walkthrough).
-- Find and mention an uncommon commonality to prove there is a real reason you are contacting them.
-- Borrow credibility by naturally incorporating notable affiliations, past employers, or customer names (e.g., YC).
-- Skip all backstory, origin stories, and resume details.
+Content & Telemetry (From Quanteinstein Enterprise OS v3.0 Architecture Brief):
+- Frame their core cold-start pain point: Most desks under $50M AUM spend 6+ months and $200k+ building lock-free shared memory, FIX session recovery, and zero-allocation socket parsers from scratch instead of focusing on alpha models.
+- Present the solution with exact verified hardware telemetry:
+  • Wire-to-Ring Ingress: 1.5 µs median on live exchange tick feeds
+  • Zero Heap Allocation: 0 bytes dynamic memory on hot path
+  • Core Throughput: 2.7M orders/sec across hardware-isolated SPSC rings
+  • Turnkey Compliance: Built-in SEC 15c3-5 pre-trade checks + WAL crash recovery
+- Commercial Terms: "We provide a Commercial Source License ($12.5k/year for early design partners) with private VPC deployment in 48 hours."
+- Deliverability: DO NOT attach heavy video files (>10MB). Attach only the lightweight 228 KB Architecture Brief PDF.
 
 The Ask
-- Make the ask highly explicit (e.g., asking for advice, feedback, or permission to share benchmark data).
-- Never ask for a meeting directly; leave room for the recipient to escalate the interaction.
-
-Operational Directives (For the Agent's Context)
-- Ensure the drafted email is intended to be sent from a company email address that includes the sender's name (Onkar, Founder of Quanteinstein).
-- Draft content meant for a highly targeted audience, as 100 good-fit emails beat 1,000 random ones.
-- Make the output read as though it was hand-written by a founder, avoiding any corporate or automated feel.
-- Be prepared to generate 2-4 follow-up variations spaced a few days apart.
-- Maintain a polite, non-confrontational tone in all follow-ups, acknowledging that it is okay if they ignore it and that you will check back in a few months.
+- Action-oriented terminal walkthrough ask: "Open to a quick 10-minute terminal walkthrough this week to see our live feed benchmarks?"
+- Place the ask on its own separate line right before the sign-off.
+- Signature:
+  Best,
+  Onkar Chougule
+  Systems Architect | Quanteinstein Technologies
+  quanteinstein.com
 
 ### TARGET PROSPECT INTELLIGENCE
 Firm Name: {firm_name}
@@ -77,30 +63,30 @@ Core Pain Point: {core_pain_point}
 ### OUTPUT FORMAT
 Output valid JSON only:
 {{
-  "subject": "[Casual, short subject line resembling a friend's message]",
-  "body": "[Exactly 3 sentences: what you do, why it is exciting, and what you want]",
-  "the_ask": "[Explicit ask on its own separate line -- NEVER ask for a meeting]",
+  "subject": "C++20 execution engine / 1.5µs live wire-to-ring / zero-alloc",
+  "body": "[Full Engineer-to-Engineer email body including bullet points and signature]",
+  "the_ask": "Open to a quick 10-minute terminal walkthrough this week to see our live feed benchmarks?",
   "follow_ups": [
     {{
       "step": "Follow-Up 1 (Day +3)",
       "delay_days": 3,
       "subject": "quick follow up / {firm_name}",
-      "body": "[Short bump with quick proof point and isolated ask]"
+      "body": "[Short bump with verified 363ns core latency metric, 1-min video offer on request, and terminal ask]"
     }},
     {{
       "step": "Follow-Up 2 (Day +7)",
       "delay_days": 7,
-      "subject": "c++ fix benchmarks for {firm_name}",
-      "body": "[Short follow-up sharing a single technical proof metric]"
+      "subject": "C++20 benchmarks for {firm_name}",
+      "body": "[Short technical follow-up on 2.71M/sec throughput + SEC 15c3-5 compliance]"
     }},
     {{
       "step": "Follow-Up 3 (Day +14 Breakup)",
       "delay_days": 14,
-      "subject": "closing the loop for now",
+      "subject": "closing the loop / {firm_name}",
       "body": "[Polite breakup, acknowledging it is fine to pass, checking back in a few months]"
     }}
   ],
-  "value_props_used": ["[Capability 1]", "[Capability 2]"]
+  "value_props_used": ["Deterministic C++20 Core Substrate", "1.50 μs Wire-to-Ring Latency", "SEC Rule 15c3-5 Pre-Trade Risk Filters"]
 }}
 """
 
@@ -162,207 +148,144 @@ class EmailOutreachGenerator:
 
     def format_subject_line(self, lead: DiscoveredLead, variation_idx: int = 0) -> str:
         """
-        Constructs a casual, short, relevant subject line resembling a message from a friend.
+        Constructs a concise, engineer-to-engineer subject line targeting quant technical founders and CTOs.
         """
         short_name = self.get_firm_shortname(lead)
-        is_sweet_spot = "proprietary" in (lead.firm_segment or "").lower() or "family" in (lead.firm_segment or "").lower()
-
-        if is_sweet_spot:
-            templates = [
-                f"quick question for {short_name}",
-                f"{short_name} / fix engine",
-                f"c++ execution at {short_name}",
-                f"quick question re: {short_name}",
-                f"fix latency question",
-                f"{short_name} / single-tenant sandbox"
-            ]
-        else:
-            templates = [
-                f"quick question for {short_name}",
-                f"{short_name} • sec 15c3-5 check",
-                f"c++ fix infrastructure",
-                f"{short_name} / broker audits",
-                f"quick question re: execution",
-                f"broker compliance at {short_name}"
-            ]
-
+        templates = [
+            "C++20 execution engine / 1.5µs live wire-to-ring / zero-alloc",
+            f"{short_name} / C++20 execution engine (1.5µs wire-to-ring)",
+            f"{short_name} / zero-alloc C++20 substrate",
+            f"C++20 execution engine for {short_name}",
+            f"quick question re: {short_name} execution",
+            f"{short_name} / 1.5µs live wire-to-ring"
+        ]
         return templates[variation_idx % len(templates)]
 
     def draft_heuristic_email(self, lead: DiscoveredLead, sender_name: Optional[str] = None) -> GeneratedEmail:
         """
-        Generates a founder-led cold email strictly adhering to the 3-sentence rule:
-        Sentence 1: What you do (about recipient's problem, plain words, no jargon)
-        Sentence 2: Why it is exciting (best proof: 1.50 μs wire-to-ring latency, 2.71M/sec throughput, SEC 15c3-5 audit pass)
-        Sentence 3: What you want (single goal)
-        The Ask: Placed on its own separate line right before sign-off (NEVER asking for a meeting)
-        Includes 3 spaced follow-up variations with polite breakup tone.
+        Generates an Engineer-to-Engineer cold email strictly adhering to the Systems Architect persona:
+        1. Direct acknowledgment: Saw {firm}'s focus on {strategy}.
+        2. Core cold-start pain point: Desks under $50M AUM spending 6+ months & $200k+ building lock-free SHM & FIX from scratch.
+        3. Verified hardware telemetry bullets (1.5 µs median ingress, 0 bytes heap, 2.7M/sec SPSC throughput, SEC 15c3-5).
+        4. Commercial Source License ($12.5k/year early partner CSLA, 48h private VPC).
+        5. Action-oriented terminal walkthrough ask on its own line.
+        6. Systems Architect signature + 228 KB Architecture Brief PDF auto-attached (NO heavy video attachments).
         """
         hash_seed = int(hashlib.md5(f"{lead.firm_name}_{lead.email}".encode()).hexdigest(), 16)
-        framework_idx = hash_seed % 4
         subject_idx = (hash_seed >> 2) % 6
-        ask_idx = (hash_seed >> 4) % 4
 
         salutation = self.format_salutation(lead)
         subject = self.format_subject_line(lead, variation_idx=subject_idx)
         short_name = self.get_firm_shortname(lead)
-        city = lead.region.split(",")[0].strip()
-        primary_strat = lead.strategies_detected[0] if lead.strategies_detected else "quantitative strategies"
+        primary_strat = lead.strategies_detected[0].lower() if lead.strategies_detected else "quantitative strategies"
 
-        # Clean sender signature
-        clean_sender = sender_name or getattr(settings, "SENDER_NAME", "Onkar (Founder, Quanteinstein)")
-        if not clean_sender or clean_sender == "Technical Founder":
-            clean_sender = "Onkar"
+        # Systems Architect persona & signature
+        sender_full = sender_name or getattr(settings, "SENDER_NAME", "Onkar Chougule")
+        if not sender_full or "Founder" in sender_full or sender_full == "Technical Founder":
+            sender_full = "Onkar Chougule"
+        sender_title = "Systems Architect | Quanteinstein Technologies"
 
-        # Determine target segment (Sweet Spot vs Stepping Stone)
+        # Determine target segment
         is_sweet_spot = True
         if lead.firm_segment and ("emerging" in lead.firm_segment.lower() or "stepping" in lead.firm_segment.lower() or "50m" in lead.firm_segment.lower()):
             is_sweet_spot = False
 
-        region_str = lead.region or "your area"
+        # Paragraph 1: Direct acknowledgment of trading focus
+        p1 = f"Saw {lead.firm_name}'s focus on {primary_strat}."
 
-        # =====================================================================
-        # EXACT THREE-SENTENCE BODY GENERATION
-        # =====================================================================
+        # Paragraph 2: Core cold-start pain point
         if is_sweet_spot:
-            # SWEET SPOT: Prop Desks & Family Offices ($10M-$50M AUM)
-            # Focus: Pain point (execution slippage, lacking dedicated C++ team) + Proper solution (turnkey FIX engine, fill parity sandbox)
-            # NO direct price quoting in initial cold outreach
-            s1_options = [
-                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run sub-microsecond C++20 FIX execution for {primary_strat} without having to build and maintain complex infrastructure in-house.",
-                f"We provide a turnkey C++20 execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without the burden of an internal infrastructure engineering team.",
-                f"We built Quanteinstein (https://quanteinstein.com) to help lean prop trading teams like {lead.firm_name} in {region_str} eliminate the execution divergence and spread slippage that happens when {primary_strat} models move from backtests to live broker fills.",
-                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-microsecond C++20 FIX pipes without burning research cycles on custom trading infrastructure."
-            ]
-            # Sentence 2: How we solve it properly (best proof: 1.50 μs wire-to-ring latency, 363 ns core execution, 2.71M/sec throughput, 0 bytes heap)
-            s2_options = [
-                f"Benchmarked on live exchange ticks, our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency, 2.71M orders/sec throughput, and 0 bytes steady-state heap allocation out of the box.",
-                f"Our lock-free C++20 substrate clocks 363 ns p50 core latency and sustained 2.71M/sec throughput with strict zero-alloc memory guarantees, eliminating execution drag between models and live fills.",
-                f"Our engine delivers 1.50 μs wire-to-ring execution and cacheline-partitioned SHM ring channels with 0 dropped packets, eliminating slippage so your researchers can focus purely on alpha.",
-                f"Benchmarked on live exchange ticks, our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency and real exchange friction modeling, bridging mathematical models directly into live fills without execution drop-off."
-            ]
-            # Sentence 3: What you want (single goal + references attached collateral with exact telemetry)
-            s3_options = [
-                f"I've attached our 1-page C++20 architecture brief (showing our 1.50 μs latency and 2.71M/sec telemetry) and execution demo video to compare notes on how lean desks are tackling fill divergence.",
-                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our 363 ns core benchmarks and zero-alloc ingestion telemetry.",
-                f"I've attached our technical architecture brief and demo video showing our sub-microsecond wire-to-ring profile and 0-byte memory audit.",
-                f"I am attaching our 1-page C++20 architecture brief and execution demo video to see how your desk currently benchmarks live queue friction and fill latency."
-            ]
-
-            # The Ask: on its own separate line (NEVER ask for a meeting)
-            ask_options = [
-                "Would you be open to reviewing the attached architecture brief and sharing some quick feedback?",
-                "Worth taking 2 minutes to check out the attached brief and demo video?",
-                "Open to checking out the attached architecture brief to see our 1.50 μs latency telemetry?",
-                "Would you be open to sharing your thoughts on the attached technical brief?"
-            ]
-
-            value_props = [
-                "Deterministic C++20 Execution Substrate",
-                "1.50 μs Wire-to-Ring Latency (363 ns p50 Core)",
-                "2.71M / sec Throughput (0 Bytes Steady-State Memory)"
-            ]
+            p2 = "Most desks under $50M AUM spend 6+ months and $200k+ building lock-free shared memory, FIX session recovery, and zero-allocation socket parsers from scratch instead of focusing on alpha models."
         else:
-            # STEPPING STONE: Emerging Quant Funds ($50M-$250M AUM)
-            # Focus: Pain point (scaling past Python scripts, prime broker SEC 15c3-5 audits) + Proper solution (institutional C++20 FIX + turnkey pre-trade compliance)
-            # NO direct price quoting in initial cold outreach
-            s1_options = [
-                f"We built Quanteinstein (https://quanteinstein.com) so growing systematic funds like {lead.firm_name} in {region_str} can scale {primary_strat} past Python execution scripts into a sub-microsecond C++20 FIX engine with turnkey SEC Rule 15c3-5 risk controls.",
-                f"We provide an institutional-grade C++20 FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} that need to clear prime broker compliance audits.",
-                f"At Quanteinstein (https://quanteinstein.com), we help emerging quantitative funds like {lead.firm_name} in {region_str} upgrade {primary_strat} from patched-together Python execution into sub-microsecond C++20 FIX infrastructure.",
-                f"We built Quanteinstein (https://quanteinstein.com) to give growing systematic teams like {lead.firm_name} in {region_str} turnkey C++20 FIX connectivity with built-in SEC Rule 15c3-5 and Reg SHO pre-trade checks for prime broker audits."
-            ]
-            # Sentence 2: How we solve it properly (best proof: 1.50 μs latency, SEC 15c3-5 risk controls, prime broker audits, 2.71M/sec throughput)
-            s2_options = [
-                f"Our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency, 2.71M/sec throughput, and turnkey SEC Rule 15c3-5 pre-trade risk filters (capital collars, dynamic locate ledger) that pass broker audits effortlessly.",
-                f"Funds using our single-tenant C++20 engine achieve 363 ns p50 core execution and clear SEC Rule 15c3-5 & Reg SHO broker audits without writing custom compliance code.",
-                f"Our engine eliminates latency bottlenecks with 1.50 μs wire-to-ring routing and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box to pass prime broker reviews.",
-                f"Our single-tenant C++20 engine delivers 2.71M/sec throughput with 0-byte steady-state memory and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
-            ]
-            # Sentence 3: What you want (single goal + references attached collateral with exact telemetry)
-            s3_options = [
-                f"I've attached our 1-page C++20 architecture brief and execution demo video detailing our pre-trade risk filters and 1.50 μs latency telemetry.",
-                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our broker audit compliance telemetry and 2.71M/sec benchmarks.",
-                f"I've attached our architecture brief and demo video to show how our single-tenant C++20 engine eliminates execution latency bottlenecks while maintaining audit compliance.",
-                f"I am attaching our 1-page architecture brief and execution demo to see if our compliance telemetry and sub-microsecond benchmarks could be helpful for your desk."
-            ]
+            p2 = "Most emerging funds scaling past $50M AUM spend 6+ months and $200k+ rebuilding Python execution scripts into C++ FIX engines and custom SEC Rule 15c3-5 risk filters for prime broker audits."
 
-            # The Ask: on its own separate line (NEVER ask for a meeting)
-            ask_options = [
-                "Would you be open to taking a look at the attached architecture brief and SEC 15c3-5 checklist?",
-                "Worth taking 2 minutes to review the attached architecture brief and demo video?",
-                "Open to checking out the attached architecture brief to see our execution benchmarks?",
-                "Would you be open to sharing some quick feedback on the attached technical brief?"
-            ]
-
-            value_props = [
-                "Sub-Microsecond C++20 FIX Engine (1.50 μs wire-to-ring)",
-                "SEC Rule 15c3-5 & Reg SHO Real-Time Pre-Trade Risk Filters",
-                "2.71M / sec Throughput with 0 Bytes Steady-State Memory"
-            ]
-
-        sentence_1 = s1_options[framework_idx]
-        sentence_2 = s2_options[framework_idx]
-        sentence_3 = s3_options[framework_idx]
-        the_ask = ask_options[ask_idx]
-
-        # Assemble strictly formatted 3-sentence body + isolated ask
-        body = (
-            f"{salutation}\n\n"
-            f"{sentence_1} {sentence_2} {sentence_3}\n\n"
-            f"{the_ask}\n\n"
-            f"Best,\n"
-            f"{clean_sender}\n"
-            f"Founder, Quanteinstein\n"
-            f"https://quanteinstein.com"
+        # Paragraph 3: Telemetry block from Architecture Brief
+        p3_header = "We built Quanteinstein to solve that infrastructure cold start:"
+        bullets = (
+            "• Wire-to-Ring Ingress: 1.5 µs median on live exchange tick feeds\n"
+            "• Zero Heap Allocation: 0 bytes dynamic memory on hot path\n"
+            "• Core Throughput: 2.7M orders/sec across hardware-isolated SPSC rings\n"
+            "• Turnkey Compliance: Built-in SEC 15c3-5 pre-trade checks + WAL crash recovery"
         )
 
-        # =====================================================================
-        # 3 SPACED FOLLOW-UP VARIATIONS (Polite, Non-Confrontational Breakup)
-        # =====================================================================
+        # Paragraph 4: CSLA Commercial Source License terms from PDF
+        p4 = "We provide a Commercial Source License ($12.5k/year for early design partners) with private VPC deployment in 48 hours."
+
+        # Explicit action-oriented terminal ask on its own line
+        the_ask = "Open to a quick 10-minute terminal walkthrough this week to see our live feed benchmarks?"
+
+        # Assemble email body
+        body = (
+            f"{salutation}\n\n"
+            f"{p1}\n\n"
+            f"{p2}\n\n"
+            f"{p3_header}\n"
+            f"{bullets}\n\n"
+            f"{p4}\n\n"
+            f"{the_ask}\n\n"
+            f"Best,\n"
+            f"{sender_full}\n"
+            f"{sender_title}\n"
+            f"quanteinstein.com"
+        )
+
+        # 3 Spaced Follow-Up Variations
         follow_up_1 = FollowUpEmail(
             step="Follow-Up 1 (Day +3)",
             delay_days=3,
             subject=f"quick follow up / {short_name}",
             body=(
                 f"{salutation}\n\n"
-                f"Quick bump on this in case it slipped down your inbox. In our verified telemetry from the attached brief, our C++20 ingestion core clocked 363 ns p50 core latency and 1.50 μs live wire-to-ring with 0 bytes steady-state memory allocation.\n\n"
-                f"Worth taking 2 minutes to glance over the attached 1-page brief?\n\n"
+                f"Quick bump on this in case it slipped down your inbox. In our verified telemetry from the attached 1-page architecture brief, our C++20 ingestion core clocked 363 ns p50 core latency and 1.5 µs live wire-to-ring with 0 bytes steady-state memory allocation.\n\n"
+                f"We also have a 1-minute live terminal benchmark recording available if you'd prefer to see it before a call.\n\n"
+                f"Open to a quick 10-minute terminal walkthrough this week?\n\n"
                 f"Best,\n"
-                f"{clean_sender}\n"
-                f"Founder, Quanteinstein"
+                f"{sender_full}\n"
+                f"{sender_title}\n"
+                f"quanteinstein.com"
             )
         )
 
         follow_up_2 = FollowUpEmail(
             step="Follow-Up 2 (Day +7)",
             delay_days=7,
-            subject=f"c++ fix benchmarks for {short_name}",
+            subject=f"C++20 benchmarks for {short_name}",
             body=(
                 f"{salutation}\n\n"
-                f"Wanted to share one quick data point from the brief -- our C++20 engine sustains 2.71M orders/sec while enforcing turnkey SEC Rule 15c3-5 and Reg SHO pre-trade risk filters in real time without custom compliance code.\n\n"
-                f"Open to checking out our sandbox test login?\n\n"
+                f"Wanted to share one quick data point from the brief — our C++20 engine sustains 2.7M orders/sec across SPSC rings while enforcing turnkey SEC Rule 15c3-5 pre-trade risk filters in real time without custom compliance code.\n\n"
+                f"Happy to spin up a private sandbox instance or run a 10-minute terminal demo to compare notes against your current fill latency.\n\n"
+                f"Worth connecting this week?\n\n"
                 f"Best,\n"
-                f"{clean_sender}\n"
-                f"Founder, Quanteinstein"
+                f"{sender_full}\n"
+                f"{sender_title}\n"
+                f"quanteinstein.com"
             )
         )
 
         follow_up_3 = FollowUpEmail(
             step="Follow-Up 3 (Day +14 Breakup)",
             delay_days=14,
-            subject="closing the loop for now",
+            subject=f"closing the loop for now / {short_name}",
             body=(
                 f"{salutation}\n\n"
-                f"Totally understand you are heads down trading and this might not be relevant right now. No worries at all if you pass on this -- I will check back in a few months to see how your execution infrastructure is holding up.\n\n"
+                f"Totally understand you are heads down trading and this might not be a fit right now. No worries at all if you pass on this — I will check back in a few months to see how your execution infrastructure is holding up.\n\n"
                 f"Wishing you and the team at {lead.firm_name} great trading this quarter.\n\n"
                 f"Best,\n"
-                f"{clean_sender}\n"
-                f"Founder, Quanteinstein"
+                f"{sender_full}\n"
+                f"{sender_title}\n"
+                f"quanteinstein.com"
             )
         )
 
         word_count = len(body.split())
         website_findings = lead.website_findings or f"Studied {lead.firm_name} portal: specializes in {primary_strat}."
+
+        value_props = [
+            "Deterministic C++20 Core Substrate",
+            "1.50 μs Wire-to-Ring Latency (363 ns p50 Core)",
+            "2.7M / sec SPSC Ring Throughput (0 Bytes Dynamic Alloc)",
+            "Turnkey SEC Rule 15c3-5 Risk Filters & WAL Recovery"
+        ]
 
         return GeneratedEmail(
             lead_id=lead.id,
@@ -378,8 +301,7 @@ class EmailOutreachGenerator:
             website_findings=website_findings,
             value_props_used=value_props,
             attachments=[
-                "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf",
-                "Quanteinstein_Execution_Engine_Demo.mp4"
+                "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf"
             ],
             word_count=word_count
         )
@@ -388,7 +310,10 @@ class EmailOutreachGenerator:
         """
         Generates tailored email using LLM if available, otherwise falls back to deterministic engine.
         """
-        clean_sender = sender_name or getattr(settings, "SENDER_NAME", "Onkar (Founder, Quanteinstein)")
+        clean_sender = sender_name or getattr(settings, "SENDER_NAME", "Onkar Chougule")
+        if not clean_sender or "Founder" in clean_sender or clean_sender == "Technical Founder":
+            clean_sender = "Onkar Chougule"
+        sender_title = "Systems Architect | Quanteinstein Technologies"
 
         if settings.LLM_PROVIDER in ("gemini", "openai") and (settings.GEMINI_API_KEY or settings.OPENAI_API_KEY):
             prompt = EMAIL_PROMPT_TEMPLATE.format(
@@ -423,7 +348,7 @@ class EmailOutreachGenerator:
                 full_body = result.get("body", "")
                 the_ask = result.get("the_ask", "")
                 if the_ask and the_ask not in full_body:
-                    full_body = f"{full_body}\n\n{the_ask}\n\nBest,\n{clean_sender}\nFounder, Quanteinstein\nhttps://quanteinstein.com"
+                    full_body = f"{full_body}\n\n{the_ask}\n\nBest,\n{clean_sender}\n{sender_title}\nquanteinstein.com"
 
                 return GeneratedEmail(
                     lead_id=lead.id,
@@ -437,7 +362,10 @@ class EmailOutreachGenerator:
                     the_ask=the_ask,
                     follow_ups=follow_ups or self.draft_heuristic_email(lead, sender_name).follow_ups,
                     website_findings=lead.website_findings,
-                    value_props_used=result.get("value_props_used", ["Turnkey C++ FIX Execution", "Single-Tenant Sandbox"]),
+                    value_props_used=result.get("value_props_used", ["Deterministic C++20 Core Substrate", "1.50 μs Wire-to-Ring Latency", "SEC Rule 15c3-5 Pre-Trade Risk Filters"]),
+                    attachments=[
+                        "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf"
+                    ],
                     word_count=len(full_body.split())
                 )
 

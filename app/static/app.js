@@ -767,13 +767,13 @@ function renderGeneratedEmails(emails) {
 
     const attachmentsHtml = `
       <div class="email-attachments-bar">
-        <span class="attachment-label">📎 ATTACHED ASSETS (Auto-Included in Outbound Email):</span>
+        <span class="attachment-label">📎 COLLATERAL ASSETS:</span>
         <div class="attachment-pills">
-          <a href="/attachments/Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf" target="_blank" class="att-pill att-pdf" download="Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf">
-            📄 Architecture Brief (PDF • 228 KB) ↗
+          <a href="/attachments/Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf" target="_blank" class="att-pill att-pdf" download="Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf" title="Auto-attached to cold outbound email (228 KB, inbox safe)">
+            📄 Architecture Brief (PDF • 228 KB) [Auto-Attached] ↗
           </a>
-          <a href="/attachments/Quanteinstein_Execution_Engine_Demo.mp4" target="_blank" class="att-pill att-video" download="Quanteinstein_Execution_Engine_Demo.mp4">
-            🎬 Engine Walkthrough (MP4 • 15.2 MB) ↗
+          <a href="/attachments/Quanteinstein_Execution_Engine_Demo.mp4" target="_blank" class="att-pill att-video" download="Quanteinstein_Execution_Engine_Demo.mp4" title="15.2 MB video hosted on server. Available upon request to protect deliverability">
+            🎬 Engine Walkthrough (MP4 • 15.2 MB) [On Request / Download] ↗
           </a>
         </div>
       </div>
@@ -848,7 +848,7 @@ async function sendCustomFollowUpViaSmtp(cardIdx, followUpIdx, btn) {
     }
     btn.textContent = "✓ Sent";
     btn.style.background = "#238636";
-    showToast(`Follow-up sent to ${em.recipient_email} with 2 attachments!`);
+    showToast(`Follow-up sent to ${em.recipient_email} with Architecture Brief PDF (228 KB)!`);
   } catch (err) {
     console.error("SMTP follow-up dispatch error:", err);
     alert("Follow-up dispatch failed: " + err.message);
@@ -882,9 +882,9 @@ async function sendEmailViaSmtp(idx, btn) {
     if (!resp.ok) {
       throw new Error(res.detail || "Failed to send email");
     }
-    btn.textContent = "✓ Sent with Attachments (Suppressed)";
+    btn.textContent = "✓ Sent with Architecture Brief PDF";
     btn.style.background = "#238636";
-    showToast(`Email dispatched to ${em.recipient_email} with 2 attachments (PDF brief & demo video)! Added to suppression list.`);
+    showToast(`Email dispatched to ${em.recipient_email} with 228 KB Architecture Brief PDF! Added to suppression list.`);
     updateSentSuppressionStats();
   } catch (err) {
     console.error("SMTP dispatch error:", err);

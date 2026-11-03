@@ -16,8 +16,12 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Default collateral attached to institutional cold emails
+# Default collateral attached to institutional cold emails (lightweight PDF brief under 300KB to ensure 100% inbox deliverability)
 DEFAULT_ATTACHMENTS = [
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "attachments", "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf")
+]
+
+ALL_MARKETING_COLLATERAL = [
     os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "attachments", "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf"),
     os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "attachments", "Quanteinstein_Execution_Engine_Demo.mp4")
 ]
@@ -28,19 +32,21 @@ class EmailDispatcher:
 
     @staticmethod
     def get_available_attachments() -> List[Dict[str, Any]]:
-        """Returns metadata about available attachments for email campaigns."""
+        """Returns metadata about available collateral and attachments."""
         attachments_info = []
-        for path in DEFAULT_ATTACHMENTS:
+        for path in ALL_MARKETING_COLLATERAL:
             if os.path.exists(path):
                 size_bytes = os.path.getsize(path)
                 size_mb = round(size_bytes / (1024 * 1024), 2)
                 filename = os.path.basename(path)
+                is_default_attached = path in DEFAULT_ATTACHMENTS
                 attachments_info.append({
                     "filename": filename,
                     "path": path,
                     "size_bytes": size_bytes,
                     "size_formatted": f"{size_mb} MB" if size_mb >= 1.0 else f"{round(size_bytes / 1024, 1)} KB",
-                    "url": f"/attachments/{filename}"
+                    "url": f"/attachments/{filename}",
+                    "is_auto_attached": is_default_attached
                 })
         return attachments_info
 

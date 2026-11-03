@@ -191,12 +191,12 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
 
     def test_suppression_list_excludes_sent_companies_from_batches(self):
         """Verifies contacted firms are suppressed and never appear in any batch."""
-        test_email = "oliver.sterling@mayfairsystematic.co.uk"
-        test_firm = "mayfair systematic alpha"
+        test_email = "paul.white@quantbot.com"
+        test_firm = "quantbot technologies"
         
         req = SearchQueryRequest(
-            niche="proprietary trading desk",
-            region="London, UK",
+            niche="quantitative proprietary trading",
+            region="New York, NY",
             batch_range="1-50",
             max_target_pool=1000
         )
@@ -226,92 +226,89 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
                 self.assertNotIn(b, lead.email.lower())
 
     def test_mid_market_sweet_spot_and_stepping_stone_email_copy(self):
-        """Verifies emails focus on pain points and technical solutions without quoting price upfront."""
+        """Verifies engineer-to-engineer email copy with verified telemetry, $12.5k CSLA, and terminal walkthrough ask."""
         # Sweet Spot Lead
         sweet_lead = DiscoveredLead(
-            firm_name="Apex Prop Partners",
-            website="https://apexproppartners.com",
-            region="London, UK",
-            contact_name="Oliver Sterling",
-            contact_title="Founder & Lead Portfolio Manager",
-            email="oliver@apexproppartners.com",
-            summary="Boutique prop desk (5 headcount, $20M AUM) running statistical arbitrage.",
+            firm_name="Quantbot Technologies",
+            website="https://www.quantbot.com",
+            region="New York, NY",
+            contact_name="Paul White",
+            contact_title="Chief Technology Officer",
+            email="paul.white@quantbot.com",
+            summary="Quantitative algorithmic trading firm specializing in global equity statistical arbitrage.",
             strategies_detected=["Statistical Arbitrage"],
             firm_segment="Proprietary Trading Firm & Family Office",
-            headcount="5 employees",
-            aum="$20M AUM",
+            headcount="35 employees",
+            aum="Proprietary Capital",
             target_decision_maker="Founder & Lead PM",
             core_pain_point="Lacks in-house C++ infra team; needs turnkey low-latency FIX execution & single-tenant sandbox",
             relevance_score=10
         )
         sweet_email = self.generator.draft_heuristic_email(sweet_lead)
-        # Verify NO direct pricing in initial cold email
-        self.assertNotIn("80,000", sweet_email.body)
-        self.assertNotIn("500,000", sweet_email.body)
-        self.assertNotIn("$80k", sweet_email.body)
-        self.assertNotIn("$500k", sweet_email.body)
-        # Verify pain points and technical solution are addressed properly
-        self.assertTrue("infrastructure" in sweet_email.body.lower() or "slippage" in sweet_email.body.lower() or "divergence" in sweet_email.body.lower())
-        self.assertIn("FIX", sweet_email.body)
-        self.assertIn("Quanteinstein", sweet_email.body)
-        # Verify latency is micro/nanosecond, NOT millisecond, and exact figures from PDF are cited
-        self.assertNotIn("milli", sweet_email.body.lower())
-        self.assertTrue("1.50" in sweet_email.body or "363" in sweet_email.body or "2.71m" in sweet_email.body.lower())
+        # Verify engineer-to-engineer structure and exact telemetry
+        self.assertIn("Quantbot Technologies", sweet_email.body)
+        self.assertIn("Wire-to-Ring Ingress: 1.5 µs", sweet_email.body)
+        self.assertIn("Zero Heap Allocation: 0 bytes", sweet_email.body)
+        self.assertIn("Core Throughput: 2.7M orders/sec", sweet_email.body)
+        self.assertIn("SEC 15c3-5", sweet_email.body)
+        self.assertIn("$12.5k/year", sweet_email.body)
+        self.assertIn("10-minute terminal walkthrough", sweet_email.body)
+        self.assertIn("Systems Architect | Quanteinstein Technologies", sweet_email.body)
+        # Verify deliverability: only 1 attachment auto-attached (PDF brief under 300KB)
+        self.assertEqual(len(sweet_email.attachments), 1)
+        self.assertIn("Architecture_Brief.pdf", sweet_email.attachments[0])
 
         # Stepping Stone Lead
         stepping_lead = DiscoveredLead(
-            firm_name="Kensington Quantitative Fund",
-            website="https://kensingtonquant.co.uk",
+            firm_name="Florin Court Capital",
+            website="https://www.florincourt.com",
             region="London, UK",
-            contact_name="Sebastian Cross",
-            contact_title="Chief Technology Officer",
-            email="s.cross@kensingtonquant.co.uk",
-            summary="Emerging quant fund (24 headcount, $120M AUM) scaling multi-asset momentum.",
-            strategies_detected=["Systematic Macro"],
+            contact_name="Doug Greenig",
+            contact_title="CEO & Chief Investment Officer",
+            email="contact@florincourt.com",
+            summary="Emerging quant fund scaling multi-asset alternative markets.",
+            strategies_detected=["Alternative Markets Systematic"],
             firm_segment="Emerging Quantitative Fund",
-            headcount="24 employees",
-            aum="$120M AUM",
+            headcount="28 employees",
+            aum="$165M AUM",
             target_decision_maker="Head of Quantitative Trading / CTO",
             core_pain_point="Scaling past Python scripts; needs C++ FIX engine + SEC Rule 15c3-5 risk controls",
             relevance_score=10
         )
         stepping_email = self.generator.draft_heuristic_email(stepping_lead)
-        # Verify NO direct pricing in initial cold email
-        self.assertNotIn("80,000", stepping_email.body)
-        self.assertNotIn("$", stepping_email.body)
-        # Verify compliance and latency solutions
+        # Verify compliance and telemetry
+        self.assertIn("Florin Court Capital", stepping_email.body)
         self.assertIn("15c3-5", stepping_email.body)
-        self.assertIn("FIX", stepping_email.body)
-        self.assertIn("prime broker", stepping_email.body.lower())
-        # Verify latency is micro/nanosecond, NOT millisecond
-        self.assertNotIn("milli", stepping_email.body.lower())
-        self.assertTrue("1.50" in stepping_email.body or "363" in stepping_email.body or "2.71m" in stepping_email.body.lower())
+        self.assertIn("Wire-to-Ring Ingress: 1.5 µs", stepping_email.body)
+        self.assertIn("$12.5k/year", stepping_email.body)
+        self.assertIn("10-minute terminal walkthrough", stepping_email.body)
 
     def test_attached_architecture_brief_and_video_demo(self):
-        """Verifies collateral attachments (PDF brief & video demo) are registered and retrievable."""
+        """Verifies only lightweight 228KB PDF is auto-attached to outbound emails, while MP4 video is available on request."""
         lead = DiscoveredLead(
-            firm_name="Mayfair Systematic Alpha",
-            website="https://mayfairsystematic.co.uk",
-            region="London, UK",
-            contact_name="Oliver Sterling",
-            contact_title="Founder",
-            email="oliver@mayfairsystematic.co.uk",
+            firm_name="Quantbot Technologies",
+            website="https://www.quantbot.com",
+            region="New York, NY",
+            contact_name="Paul White",
+            contact_title="CTO",
+            email="paul.white@quantbot.com",
             summary="Proprietary trading fund.",
-            strategies_detected=["FX Volatility"]
+            strategies_detected=["Statistical Arbitrage"]
         )
         email = self.generator.draft_heuristic_email(lead)
-        self.assertGreaterEqual(len(email.attachments), 2)
-        self.assertTrue(any("Architecture_Brief.pdf" in att for att in email.attachments))
-        self.assertTrue(any("Demo.mp4" in att for att in email.attachments))
+        # Outbound email MUST only contain the lightweight PDF brief to protect deliverability
+        self.assertEqual(len(email.attachments), 1)
+        self.assertEqual(email.attachments[0], "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf")
 
-        # Test API attachments endpoint
+        # Test API attachments endpoint reports both collateral assets with proper auto-attached metadata
         resp = self.client.get("/api/discovery/attachments")
         self.assertEqual(resp.status_code, 200)
         items = resp.json()
-        self.assertGreaterEqual(len(items), 2)
-        filenames = [item["filename"] for item in items]
-        self.assertIn("Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf", filenames)
-        self.assertIn("Quanteinstein_Execution_Engine_Demo.mp4", filenames)
+        self.assertEqual(len(items), 2)
+        pdf_item = next(i for i in items if "Architecture_Brief.pdf" in i["filename"])
+        video_item = next(i for i in items if "Demo.mp4" in i["filename"])
+        self.assertTrue(pdf_item["is_auto_attached"])
+        self.assertFalse(video_item["is_auto_attached"])
 
 
 if __name__ == "__main__":

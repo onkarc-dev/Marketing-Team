@@ -52,10 +52,12 @@ class TestDiscoveryAndEmailGenerator(unittest.TestCase):
         
         self.assertEqual(email.recipient_email, "elena@apexquant.com")
         self.assertIn("Apex Quant Labs", email.body)
-        self.assertIn("New York, NY", email.body)
-        self.assertIn("Statistical Arbitrage", email.body)
+        self.assertIn("statistical arbitrage", email.body.lower())
         self.assertIn("Quanteinstein", email.body)
         self.assertIn("quanteinstein.com", email.body.lower())
+        self.assertIn("1.5 µs", email.body)
+        self.assertIn("2.7M orders/sec", email.body)
+        self.assertIn("10-minute terminal walkthrough", email.body)
         self.assertLessEqual(email.word_count, 170)
 
 

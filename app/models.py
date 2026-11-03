@@ -200,10 +200,9 @@ class GeneratedEmail(BaseModel):
     value_props_used: List[str] = []
     attachments: List[str] = Field(
         default_factory=lambda: [
-            "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf",
-            "Quanteinstein_Execution_Engine_Demo.mp4"
+            "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf"
         ],
-        description="Files attached to this email"
+        description="Files attached to this email (lightweight PDF brief under 300KB to ensure deliverability)"
     )
     word_count: int
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

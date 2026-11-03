@@ -38,8 +38,16 @@ Content & Strategy
 - Make the email about the recipient and frame their problem using their own words.
 - Focus purely on their specific pain point (e.g. execution slippage, lack of in-house C++ infra devs, Python latency limits, SEC 15c3-5 broker audits) and how we solve it properly.
 - NEVER state direct pricing, fees, or dollar figures (do not quote $80,000/year, $500k savings, or software costs) in the initial cold email.
+- CRITICAL TECHNICAL SPECIFICATION: Latency MUST be framed in MICROSECONDS (μs) or NANOSECONDS (ns), NEVER milliseconds (ms or sub-millisecond).
+- Exact hardware telemetry from Quanteinstein Enterprise OS v3.0 Architecture Brief to cite:
+  * Ingestion Throughput: 2.71M orders/sec (sustained 5M burst)
+  * Steady-State Heap Allocation: 0 Bytes (strict zero-alloc assertion)
+  * Live Wire-to-Ring Latency: 1.50 μs (p50 live Binance & FX ticks)
+  * SPSC Core Latency: 363 ns p50 (min: 19 ns)
+  * Architecture: C++20 lock-free POSIX SHM ring channels (384-byte alignas(64) cacheline-partitioned memory), kernel-bypass socket layer
+  * Regulatory Compliance: Turnkey SEC Rule 15c3-5 & Reg SHO real-time pre-trade risk filters (capital collars, size limits, dynamic cryptographic locate decrement ledger)
+- Reference the 2 attached collateral files: (1) Quanteinstein Enterprise OS v3.0 Architecture Brief (PDF) and (2) Quanteinstein Execution Engine Demo (Video Walkthrough).
 - Find and mention an uncommon commonality to prove there is a real reason you are contacting them.
-- Lead with your best proof, such as metrics on execution latency (e.g., 18-microsecond routing, zero fill divergence), turnkey prime broker audit compliance, or technical sandbox capabilities.
 - Borrow credibility by naturally incorporating notable affiliations, past employers, or customer names (e.g., YC).
 - Skip all backstory, origin stories, and resume details.
 
@@ -184,7 +192,7 @@ class EmailOutreachGenerator:
         """
         Generates a founder-led cold email strictly adhering to the 3-sentence rule:
         Sentence 1: What you do (about recipient's problem, plain words, no jargon)
-        Sentence 2: Why it is exciting (best proof: $420k savings, sub-millisecond execution, SEC 15c3-5 audit pass)
+        Sentence 2: Why it is exciting (best proof: 1.50 μs wire-to-ring latency, 2.71M/sec throughput, SEC 15c3-5 audit pass)
         Sentence 3: What you want (single goal)
         The Ask: Placed on its own separate line right before sign-off (NEVER asking for a meeting)
         Includes 3 spaced follow-up variations with polite breakup tone.
@@ -220,62 +228,62 @@ class EmailOutreachGenerator:
             # Focus: Pain point (execution slippage, lacking dedicated C++ team) + Proper solution (turnkey FIX engine, fill parity sandbox)
             # NO direct price quoting in initial cold outreach
             s1_options = [
-                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run low-latency C++ FIX execution for {primary_strat} without having to build and maintain complex infrastructure in-house.",
-                f"We provide a turnkey C++ FIX execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without the burden of an internal infrastructure engineering team.",
+                f"We built Quanteinstein (https://quanteinstein.com) so boutique prop trading desks like {lead.firm_name} in {region_str} can run sub-microsecond C++20 FIX execution for {primary_strat} without having to build and maintain complex infrastructure in-house.",
+                f"We provide a turnkey C++20 execution engine and private strategy sandbox for boutique desks like {lead.firm_name} in {region_str} scaling {primary_strat} without the burden of an internal infrastructure engineering team.",
                 f"We built Quanteinstein (https://quanteinstein.com) to help lean prop trading teams like {lead.firm_name} in {region_str} eliminate the execution divergence and spread slippage that happens when {primary_strat} models move from backtests to live broker fills.",
-                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-millisecond C++ FIX pipes without burning research cycles on custom trading infrastructure."
+                f"At Quanteinstein (https://quanteinstein.com), we help boutique trading desks like {lead.firm_name} in {region_str} deploy {primary_strat} into sub-microsecond C++20 FIX pipes without burning research cycles on custom trading infrastructure."
             ]
-            # Sentence 2: How we solve it properly (best proof: sub-millisecond execution, queue friction modeling, fill parity)
+            # Sentence 2: How we solve it properly (best proof: 1.50 μs wire-to-ring latency, 363 ns core execution, 2.71M/sec throughput, 0 bytes heap)
             s2_options = [
-                f"Our single-tenant C++ engine models real exchange queue friction and delivers sub-millisecond fill parity, giving your desk institutional execution speed and private data isolation out of the box.",
-                f"Our private incubation sandbox lets quantitative desks stress-test order routing against authentic exchange friction and verify true fill parity before routing capital to live broker pipes.",
-                f"Our engine delivers turnkey sub-millisecond order routing with built-in queue friction modeling and single-tenant isolation, eliminating execution drag so your researchers can focus purely on alpha.",
-                f"Our single-tenant C++ engine delivers sub-millisecond execution parity and real exchange friction modeling, bridging mathematical models directly into live trading without execution drop-off."
+                f"Benchmarked on live exchange ticks, our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency, 2.71M orders/sec throughput, and 0 bytes steady-state heap allocation out of the box.",
+                f"Our lock-free C++20 substrate clocks 363 ns p50 core latency and sustained 2.71M/sec throughput with strict zero-alloc memory guarantees, eliminating execution drag between models and live fills.",
+                f"Our engine delivers 1.50 μs wire-to-ring execution and cacheline-partitioned SHM ring channels with 0 dropped packets, eliminating slippage so your researchers can focus purely on alpha.",
+                f"Benchmarked on live exchange ticks, our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency and real exchange friction modeling, bridging mathematical models directly into live fills without execution drop-off."
             ]
-            # Sentence 3: What you want (single goal + references attached collateral)
+            # Sentence 3: What you want (single goal + references attached collateral with exact telemetry)
             s3_options = [
-                f"I've attached our 1-page C++20 architecture brief and execution demo video showing how our zero-alloc ingestion core and ring channels perform.",
-                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our sub-microsecond wire-to-ring benchmarks.",
-                f"I've attached our architecture brief and demo video to show how our single-tenant sandbox stress-tests rules against real exchange friction.",
-                f"I am attaching our 1-page C++ architecture brief and execution demo to compare notes on how lean desks are tackling fill divergence."
+                f"I've attached our 1-page C++20 architecture brief (showing our 1.50 μs latency and 2.71M/sec telemetry) and execution demo video to compare notes on how lean desks are tackling fill divergence.",
+                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our 363 ns core benchmarks and zero-alloc ingestion telemetry.",
+                f"I've attached our technical architecture brief and demo video showing our sub-microsecond wire-to-ring profile and 0-byte memory audit.",
+                f"I am attaching our 1-page C++20 architecture brief and execution demo video to see how your desk currently benchmarks live queue friction and fill latency."
             ]
 
             # The Ask: on its own separate line (NEVER ask for a meeting)
             ask_options = [
                 "Would you be open to reviewing the attached architecture brief and sharing some quick feedback?",
                 "Worth taking 2 minutes to check out the attached brief and demo video?",
-                "Open to checking out the attached architecture brief to see our fill latency numbers?",
+                "Open to checking out the attached architecture brief to see our 1.50 μs latency telemetry?",
                 "Would you be open to sharing your thoughts on the attached technical brief?"
             ]
 
             value_props = [
-                "Turnkey C++ FIX Execution Engine",
-                "Single-Tenant Strategy Incubation Sandbox",
-                "Sub-Millisecond Fill Parity & Slippage Modeling"
+                "Deterministic C++20 Execution Substrate",
+                "1.50 μs Wire-to-Ring Latency (363 ns p50 Core)",
+                "2.71M / sec Throughput (0 Bytes Steady-State Memory)"
             ]
         else:
             # STEPPING STONE: Emerging Quant Funds ($50M-$250M AUM)
-            # Focus: Pain point (scaling past Python scripts, prime broker SEC 15c3-5 audits) + Proper solution (institutional C++ FIX + turnkey pre-trade compliance)
+            # Focus: Pain point (scaling past Python scripts, prime broker SEC 15c3-5 audits) + Proper solution (institutional C++20 FIX + turnkey pre-trade compliance)
             # NO direct price quoting in initial cold outreach
             s1_options = [
-                f"We built Quanteinstein (https://quanteinstein.com) so growing systematic funds like {lead.firm_name} in {region_str} can scale {primary_strat} past Python execution scripts into an institutional C++ FIX engine with turnkey SEC Rule 15c3-5 risk controls.",
-                f"We provide an institutional-grade C++ FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} that need to clear prime broker compliance audits.",
-                f"At Quanteinstein (https://quanteinstein.com), we help emerging quantitative funds like {lead.firm_name} in {region_str} upgrade {primary_strat} from patched-together Python execution into sub-millisecond C++ FIX infrastructure.",
-                f"We built Quanteinstein (https://quanteinstein.com) to give growing systematic teams like {lead.firm_name} in {region_str} turnkey C++ FIX connectivity with built-in SEC Rule 15c3-5 pre-trade checks for prime broker audits."
+                f"We built Quanteinstein (https://quanteinstein.com) so growing systematic funds like {lead.firm_name} in {region_str} can scale {primary_strat} past Python execution scripts into a sub-microsecond C++20 FIX engine with turnkey SEC Rule 15c3-5 risk controls.",
+                f"We provide an institutional-grade C++20 FIX execution engine and private sandbox for growing quantitative funds like {lead.firm_name} in {region_str} scaling past $50M in {primary_strat} that need to clear prime broker compliance audits.",
+                f"At Quanteinstein (https://quanteinstein.com), we help emerging quantitative funds like {lead.firm_name} in {region_str} upgrade {primary_strat} from patched-together Python execution into sub-microsecond C++20 FIX infrastructure.",
+                f"We built Quanteinstein (https://quanteinstein.com) to give growing systematic teams like {lead.firm_name} in {region_str} turnkey C++20 FIX connectivity with built-in SEC Rule 15c3-5 and Reg SHO pre-trade checks for prime broker audits."
             ]
-            # Sentence 2: How we solve it properly (best proof: SEC 15c3-5 risk controls, prime broker audits, sub-millisecond)
+            # Sentence 2: How we solve it properly (best proof: 1.50 μs latency, SEC 15c3-5 risk controls, prime broker audits, 2.71M/sec throughput)
             s2_options = [
-                f"Our single-tenant C++ engine delivers sub-millisecond execution and turnkey SEC Rule 15c3-5 pre-trade risk controls that let growing funds pass prime broker audits effortlessly.",
-                f"Funds using our single-tenant C++ engine achieve sub-millisecond order routing and clear SEC Rule 15c3-5 broker audits without writing custom compliance code.",
-                f"Our engine eliminates execution latency bottlenecks and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box to pass prime broker reviews.",
-                f"Our single-tenant C++ engine delivers sub-millisecond routing and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
+                f"Our single-tenant C++20 engine delivers 1.50 μs wire-to-ring latency, 2.71M/sec throughput, and turnkey SEC Rule 15c3-5 pre-trade risk filters (capital collars, dynamic locate ledger) that pass broker audits effortlessly.",
+                f"Funds using our single-tenant C++20 engine achieve 363 ns p50 core execution and clear SEC Rule 15c3-5 & Reg SHO broker audits without writing custom compliance code.",
+                f"Our engine eliminates latency bottlenecks with 1.50 μs wire-to-ring routing and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box to pass prime broker reviews.",
+                f"Our single-tenant C++20 engine delivers 2.71M/sec throughput with 0-byte steady-state memory and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
             ]
-            # Sentence 3: What you want (single goal + references attached collateral)
+            # Sentence 3: What you want (single goal + references attached collateral with exact telemetry)
             s3_options = [
-                f"I've attached our 1-page C++20 architecture brief and execution demo video detailing our pre-trade risk filters and wire-to-ring latency benchmarks.",
-                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our broker audit compliance telemetry.",
-                f"I've attached our architecture brief and demo video to show how our single-tenant C++ engine eliminates execution latency bottlenecks.",
-                f"I am attaching our 1-page architecture brief and execution demo to see if our compliance telemetry could be helpful for your desk."
+                f"I've attached our 1-page C++20 architecture brief and execution demo video detailing our pre-trade risk filters and 1.50 μs latency telemetry.",
+                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our broker audit compliance telemetry and 2.71M/sec benchmarks.",
+                f"I've attached our architecture brief and demo video to show how our single-tenant C++20 engine eliminates execution latency bottlenecks while maintaining audit compliance.",
+                f"I am attaching our 1-page architecture brief and execution demo to see if our compliance telemetry and sub-microsecond benchmarks could be helpful for your desk."
             ]
 
             # The Ask: on its own separate line (NEVER ask for a meeting)
@@ -287,9 +295,9 @@ class EmailOutreachGenerator:
             ]
 
             value_props = [
-                "Low-Latency C++ FIX Execution Engine",
-                "SEC Rule 15c3-5 Pre-Trade Risk Controls",
-                "Single-Tenant Prime Broker Audit Compliance"
+                "Sub-Microsecond C++20 FIX Engine (1.50 μs wire-to-ring)",
+                "SEC Rule 15c3-5 & Reg SHO Real-Time Pre-Trade Risk Filters",
+                "2.71M / sec Throughput with 0 Bytes Steady-State Memory"
             ]
 
         sentence_1 = s1_options[framework_idx]
@@ -317,8 +325,8 @@ class EmailOutreachGenerator:
             subject=f"quick follow up / {short_name}",
             body=(
                 f"{salutation}\n\n"
-                f"Quick bump on this in case it slipped down your inbox. We recently clocked 18-microsecond order routing on our single-tenant C++ FIX engine without desks needing an in-house infrastructure team.\n\n"
-                f"Worth sending over a 1-page summary of our benchmark data?\n\n"
+                f"Quick bump on this in case it slipped down your inbox. In our verified telemetry from the attached brief, our C++20 ingestion core clocked 363 ns p50 core latency and 1.50 μs live wire-to-ring with 0 bytes steady-state memory allocation.\n\n"
+                f"Worth taking 2 minutes to glance over the attached 1-page brief?\n\n"
                 f"Best,\n"
                 f"{clean_sender}\n"
                 f"Founder, Quanteinstein"
@@ -331,7 +339,7 @@ class EmailOutreachGenerator:
             subject=f"c++ fix benchmarks for {short_name}",
             body=(
                 f"{salutation}\n\n"
-                f"Wanted to share one quick data point -- our single-tenant engine includes turnkey SEC Rule 15c3-5 pre-trade risk controls that let quantitative teams clear prime broker audits with zero custom compliance dev work.\n\n"
+                f"Wanted to share one quick data point from the brief -- our C++20 engine sustains 2.71M orders/sec while enforcing turnkey SEC Rule 15c3-5 and Reg SHO pre-trade risk filters in real time without custom compliance code.\n\n"
                 f"Open to checking out our sandbox test login?\n\n"
                 f"Best,\n"
                 f"{clean_sender}\n"

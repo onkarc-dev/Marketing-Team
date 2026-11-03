@@ -254,6 +254,9 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertTrue("infrastructure" in sweet_email.body.lower() or "slippage" in sweet_email.body.lower() or "divergence" in sweet_email.body.lower())
         self.assertIn("FIX", sweet_email.body)
         self.assertIn("Quanteinstein", sweet_email.body)
+        # Verify latency is micro/nanosecond, NOT millisecond, and exact figures from PDF are cited
+        self.assertNotIn("milli", sweet_email.body.lower())
+        self.assertTrue("1.50" in sweet_email.body or "363" in sweet_email.body or "2.71m" in sweet_email.body.lower())
 
         # Stepping Stone Lead
         stepping_lead = DiscoveredLead(
@@ -280,6 +283,9 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertIn("15c3-5", stepping_email.body)
         self.assertIn("FIX", stepping_email.body)
         self.assertIn("prime broker", stepping_email.body.lower())
+        # Verify latency is micro/nanosecond, NOT millisecond
+        self.assertNotIn("milli", stepping_email.body.lower())
+        self.assertTrue("1.50" in stepping_email.body or "363" in stepping_email.body or "2.71m" in stepping_email.body.lower())
 
     def test_attached_architecture_brief_and_video_demo(self):
         """Verifies collateral attachments (PDF brief & video demo) are registered and retrievable."""

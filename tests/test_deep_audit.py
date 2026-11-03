@@ -281,6 +281,32 @@ class TestDeepAuditAndStressCases(unittest.TestCase):
         self.assertIn("FIX", stepping_email.body)
         self.assertIn("prime broker", stepping_email.body.lower())
 
+    def test_attached_architecture_brief_and_video_demo(self):
+        """Verifies collateral attachments (PDF brief & video demo) are registered and retrievable."""
+        lead = DiscoveredLead(
+            firm_name="Mayfair Systematic Alpha",
+            website="https://mayfairsystematic.co.uk",
+            region="London, UK",
+            contact_name="Oliver Sterling",
+            contact_title="Founder",
+            email="oliver@mayfairsystematic.co.uk",
+            summary="Proprietary trading fund.",
+            strategies_detected=["FX Volatility"]
+        )
+        email = self.generator.draft_heuristic_email(lead)
+        self.assertGreaterEqual(len(email.attachments), 2)
+        self.assertTrue(any("Architecture_Brief.pdf" in att for att in email.attachments))
+        self.assertTrue(any("Demo.mp4" in att for att in email.attachments))
+
+        # Test API attachments endpoint
+        resp = self.client.get("/api/discovery/attachments")
+        self.assertEqual(resp.status_code, 200)
+        items = resp.json()
+        self.assertGreaterEqual(len(items), 2)
+        filenames = [item["filename"] for item in items]
+        self.assertIn("Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf", filenames)
+        self.assertIn("Quanteinstein_Execution_Engine_Demo.mp4", filenames)
+
 
 if __name__ == "__main__":
     unittest.main()

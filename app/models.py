@@ -198,6 +198,13 @@ class GeneratedEmail(BaseModel):
     follow_ups: List[FollowUpEmail] = Field(default_factory=list, description="2-4 follow-up variations spaced a few days apart")
     website_findings: Optional[str] = None
     value_props_used: List[str] = []
+    attachments: List[str] = Field(
+        default_factory=lambda: [
+            "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf",
+            "Quanteinstein_Execution_Engine_Demo.mp4"
+        ],
+        description="Files attached to this email"
+    )
     word_count: int
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -224,5 +231,7 @@ class SendEmailRequest(BaseModel):
     smtp_password: Optional[str] = None
     smtp_host: Optional[str] = None
     smtp_port: Optional[int] = None
+    attachments: Optional[List[str]] = None
+    include_default_attachments: bool = True
 
 

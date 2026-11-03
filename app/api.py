@@ -3,6 +3,7 @@ FastAPI REST API and Web Dashboard Server for Quanteinstein B2B Intelligence Eng
 """
 
 import io
+import os
 import csv
 import logging
 from typing import List, Optional
@@ -280,7 +281,7 @@ async def export_campaign_emails():
         "Follow-Up 1 Subject", "Follow-Up 1 Body", "Follow-Up 1 Delay Days",
         "Follow-Up 2 Subject", "Follow-Up 2 Body", "Follow-Up 2 Delay Days",
         "Follow-Up 3 Subject", "Follow-Up 3 Body", "Follow-Up 3 Delay Days",
-        "Value Props", "Word Count", "Created At"
+        "Value Props", "Attachments", "Word Count", "Created At"
     ])
     for em in active_campaign_emails:
         fu1 = em.follow_ups[0] if len(em.follow_ups) > 0 else None
@@ -293,7 +294,7 @@ async def export_campaign_emails():
             fu1.subject if fu1 else "", fu1.body if fu1 else "", fu1.delay_days if fu1 else "",
             fu2.subject if fu2 else "", fu2.body if fu2 else "", fu2.delay_days if fu2 else "",
             fu3.subject if fu3 else "", fu3.body if fu3 else "", fu3.delay_days if fu3 else "",
-            "; ".join(em.value_props_used), em.word_count, em.created_at
+            "; ".join(em.value_props_used), "; ".join(em.attachments or []), em.word_count, em.created_at
         ])
     output.seek(0)
     return Response(
@@ -303,9 +304,15 @@ async def export_campaign_emails():
     )
 
 
+@app.get("/api/discovery/attachments")
+async def list_available_attachments():
+    """Returns available marketing collateral and attachments (PDF brief & video demo)."""
+    return EmailDispatcher.get_available_attachments()
+
+
 @app.post("/api/discovery/send-email")
 async def send_single_email(req: SendEmailRequest):
-    """Dispatches a single cold outreach email directly via user's SMTP/Gmail account."""
+    """Dispatches a single cold outreach email with attachments directly via user's SMTP/Gmail account."""
     result = EmailDispatcher.send_email(
         recipient_email=req.recipient_email,
         subject=req.subject,
@@ -313,7 +320,9 @@ async def send_single_email(req: SendEmailRequest):
         sender_email=req.sender_email,
         smtp_password=req.smtp_password,
         smtp_host=req.smtp_host,
-        smtp_port=req.smtp_port
+        smtp_port=req.smtp_port,
+        attachments=req.attachments,
+        include_default_attachments=req.include_default_attachments
     )
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("message"))
@@ -357,8 +366,11 @@ async def clear_sent_emails():
 
 
 
-# Mount static directory for frontend
+# Mount static and attachment directories
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+if not os.path.exists("attachments"):
+    os.makedirs("attachments", exist_ok=True)
+app.mount("/attachments", StaticFiles(directory="attachments"), name="attachments")
 
 
 @app.get("/")

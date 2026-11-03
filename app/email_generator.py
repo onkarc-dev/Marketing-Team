@@ -232,20 +232,20 @@ class EmailOutreachGenerator:
                 f"Our engine delivers turnkey sub-millisecond order routing with built-in queue friction modeling and single-tenant isolation, eliminating execution drag so your researchers can focus purely on alpha.",
                 f"Our single-tenant C++ engine delivers sub-millisecond execution parity and real exchange friction modeling, bridging mathematical models directly into live trading without execution drop-off."
             ]
-            # Sentence 3: What you want (single goal)
+            # Sentence 3: What you want (single goal + references attached collateral)
             s3_options = [
-                f"I am reaching out to a handful of quantitative founders in {region_str} to see how you are currently tackling execution latency and fill divergence.",
-                f"I am getting in touch with a few prop desk founders in {region_str} to see if our execution benchmarks match what you are seeing in live broker fills.",
-                f"I am checking in with a few boutique fund founders in {region_str} to see if execution slippage and infrastructure maintenance are on your radar right now.",
-                f"I am reaching out to a few quantitative founders in {region_str} to compare notes on how lean desks are handling execution latency."
+                f"I've attached our 1-page C++20 architecture brief and execution demo video showing how our zero-alloc ingestion core and ring channels perform.",
+                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our sub-microsecond wire-to-ring benchmarks.",
+                f"I've attached our architecture brief and demo video to show how our single-tenant sandbox stress-tests rules against real exchange friction.",
+                f"I am attaching our 1-page C++ architecture brief and execution demo to compare notes on how lean desks are tackling fill divergence."
             ]
 
             # The Ask: on its own separate line (NEVER ask for a meeting)
             ask_options = [
-                "Would you be open to giving some quick feedback on our benchmark data?",
-                "Worth sending over a 2-minute video breakdown of our latency numbers?",
-                "Open to checking out a sandbox test login to see the fill numbers?",
-                "Would you be open to sharing your thoughts on this?"
+                "Would you be open to reviewing the attached architecture brief and sharing some quick feedback?",
+                "Worth taking 2 minutes to check out the attached brief and demo video?",
+                "Open to checking out the attached architecture brief to see our fill latency numbers?",
+                "Would you be open to sharing your thoughts on the attached technical brief?"
             ]
 
             value_props = [
@@ -270,20 +270,20 @@ class EmailOutreachGenerator:
                 f"Our engine eliminates execution latency bottlenecks and gives your fund audit-ready SEC Rule 15c3-5 pre-trade risk controls out of the box to pass prime broker reviews.",
                 f"Our single-tenant C++ engine delivers sub-millisecond routing and passes prime broker SEC Rule 15c3-5 risk audits out of the box, saving months of internal dev work."
             ]
-            # Sentence 3: What you want (single goal)
+            # Sentence 3: What you want (single goal + references attached collateral)
             s3_options = [
-                f"I am reaching out to a few quantitative leaders in {region_str} to see how you are currently handling pre-trade risk controls and FIX latency as you scale.",
-                f"I am getting in touch with a few systematic leaders in {region_str} to see if broker audit compliance and execution latency are top of mind as you grow.",
-                f"I am checking in with a handful of quantitative leads in {region_str} to see how you are managing the transition from Python prototypes into institutional C++ execution.",
-                f"I am reaching out to a few quantitative fund leaders in {region_str} to see if our execution benchmarks could be helpful for your team."
+                f"I've attached our 1-page C++20 architecture brief and execution demo video detailing our pre-trade risk filters and wire-to-ring latency benchmarks.",
+                f"I am attaching our 1-page technical architecture brief and video walkthrough demonstrating our broker audit compliance telemetry.",
+                f"I've attached our architecture brief and demo video to show how our single-tenant C++ engine eliminates execution latency bottlenecks.",
+                f"I am attaching our 1-page architecture brief and execution demo to see if our compliance telemetry could be helpful for your desk."
             ]
 
             # The Ask: on its own separate line (NEVER ask for a meeting)
             ask_options = [
-                "Would you be open to taking a look at our SEC 15c3-5 compliance checklist?",
-                "Worth sending over a 2-minute walkthrough of our C++ FIX engine?",
-                "Open to checking out our execution benchmark numbers?",
-                "Would you be open to sharing some quick feedback on how you handle this?"
+                "Would you be open to taking a look at the attached architecture brief and SEC 15c3-5 checklist?",
+                "Worth taking 2 minutes to review the attached architecture brief and demo video?",
+                "Open to checking out the attached architecture brief to see our execution benchmarks?",
+                "Would you be open to sharing some quick feedback on the attached technical brief?"
             ]
 
             value_props = [
@@ -369,6 +369,10 @@ class EmailOutreachGenerator:
             follow_ups=[follow_up_1, follow_up_2, follow_up_3],
             website_findings=website_findings,
             value_props_used=value_props,
+            attachments=[
+                "Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf",
+                "Quanteinstein_Execution_Engine_Demo.mp4"
+            ],
             word_count=word_count
         )
 

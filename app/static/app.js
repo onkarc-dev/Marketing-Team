@@ -765,6 +765,20 @@ function renderGeneratedEmails(emails) {
       `;
     }
 
+    const attachmentsHtml = `
+      <div class="email-attachments-bar">
+        <span class="attachment-label">📎 ATTACHED ASSETS (Auto-Included in Outbound Email):</span>
+        <div class="attachment-pills">
+          <a href="/attachments/Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf" target="_blank" class="att-pill att-pdf" download="Quanteinstein_Enterprise_OS_v3.0_Architecture_Brief.pdf">
+            📄 Architecture Brief (PDF • 228 KB) ↗
+          </a>
+          <a href="/attachments/Quanteinstein_Execution_Engine_Demo.mp4" target="_blank" class="att-pill att-video" download="Quanteinstein_Execution_Engine_Demo.mp4">
+            🎬 Engine Walkthrough (MP4 • 15.2 MB) ↗
+          </a>
+        </div>
+      </div>
+    `;
+
     card.innerHTML = `
       <div class="email-card-header">
         <div class="email-row">
@@ -783,6 +797,7 @@ function renderGeneratedEmails(emails) {
       </div>
 
       ${analysisHtml}
+      ${attachmentsHtml}
 
       ${sequenceNavHtml}
       ${sequencePanelsHtml}
@@ -822,7 +837,8 @@ async function sendCustomFollowUpViaSmtp(cardIdx, followUpIdx, btn) {
         recipient_name: em.recipient_name,
         firm_name: em.firm_name,
         subject: fu.subject,
-        body: fu.body
+        body: fu.body,
+        include_default_attachments: true
       })
     });
 
@@ -832,7 +848,7 @@ async function sendCustomFollowUpViaSmtp(cardIdx, followUpIdx, btn) {
     }
     btn.textContent = "✓ Sent";
     btn.style.background = "#238636";
-    showToast(`Follow-up sent to ${em.recipient_email}!`);
+    showToast(`Follow-up sent to ${em.recipient_email} with 2 attachments!`);
   } catch (err) {
     console.error("SMTP follow-up dispatch error:", err);
     alert("Follow-up dispatch failed: " + err.message);
@@ -857,7 +873,8 @@ async function sendEmailViaSmtp(idx, btn) {
         recipient_name: em.recipient_name,
         firm_name: em.firm_name,
         subject: em.subject,
-        body: em.body
+        body: em.body,
+        include_default_attachments: true
       })
     });
 
@@ -865,9 +882,9 @@ async function sendEmailViaSmtp(idx, btn) {
     if (!resp.ok) {
       throw new Error(res.detail || "Failed to send email");
     }
-    btn.textContent = "✓ Sent (Suppressed from next search)";
+    btn.textContent = "✓ Sent with Attachments (Suppressed)";
     btn.style.background = "#238636";
-    showToast(`Email dispatched to ${em.recipient_email}! Added to suppression list.`);
+    showToast(`Email dispatched to ${em.recipient_email} with 2 attachments (PDF brief & demo video)! Added to suppression list.`);
     updateSentSuppressionStats();
   } catch (err) {
     console.error("SMTP dispatch error:", err);
